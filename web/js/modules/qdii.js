@@ -341,9 +341,9 @@ class QDIIController {
             `;
 
             return `
-                <tr>
+                <tr class="qdii-clickable" data-code="${item.code}" data-name="${item.name}" title="点击查看 ${item.name} 详情与持仓明细">
                     <td class="col-rank"><span class="rank-badge ${rankBadgeClass}">${rank}</span></td>
-                    <td class="col-name qdii-clickable" data-code="${item.code}" data-name="${item.name}" title="点击查看 ${item.name} 前十大重仓股">
+                    <td class="col-name">
                         <div class="qdii-name-wrapper">
                             <div class="qdii-name-topline">
                                 <span class="qdii-code-text font-mono">${item.code}</span>
@@ -353,7 +353,7 @@ class QDIIController {
                             ${navBadgeHtml}
                         </div>
                     </td>
-                    <td class="col-allocation qdii-clickable" data-code="${item.code}" data-name="${item.name}" title="点击查看 ${item.name} 前十大重仓股">${allocHtml}</td>
+                    <td class="col-allocation">${allocHtml}</td>
                     <td class="col-return">
                         <div class="qdii-return-cell">
                             <div class="qdii-return-row">

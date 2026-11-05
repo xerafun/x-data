@@ -2951,6 +2951,15 @@ footer a:hover {
     border-bottom: none;
 }
 
+.qdii-table tbody tr.qdii-clickable {
+    cursor: pointer;
+}
+
+.qdii-table tbody tr.qdii-clickable:hover {
+    opacity: 1;
+    background: var(--bg-hover);
+}
+
 .qdii-table tbody tr:hover {
     background: var(--bg-hover);
 }
