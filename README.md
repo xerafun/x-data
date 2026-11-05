@@ -3,7 +3,6 @@
 全球宏观周期与金融数据看板，基于 [FastAPI](https://fastapi.tiangolo.com/) 与 [AKShare](https://github.com/akfamily/akshare) 构建。
 
 - **线上访问**：[https://data.xerafun.com](https://data.xerafun.com)
-- **备用访问**：[https://xera.dpdns.org/data/](https://xera.dpdns.org/data/)
 
 > 本项目仅供技术交流与学习研究使用，不构成任何投资建议。
 
@@ -36,11 +35,11 @@ graph TD
     Snapshot --> LocalJSON["本地 JSON 容灾备份"]
 
     Services -->|"直连请求"| Sources["公开行情与金融数据源"]
-    Services -->|"防封中继"| Worker["Cloudflare Worker"] --> FundSources["需代理的基金数据源"]
+    Services -->|"边缘多链路分流"| Worker["Cloudflare Worker 边缘节点"] --> FundSources["跨境与多市场金融数据源"]
 ```
 
 - **四级高可用容灾**：Redis 内存热缓存（<5ms）➔ 进程内 LocalCache 兜底 ➔ PostgreSQL 数据快照（`DataSnapshot`，冷启动/重启秒开）➔ 容器本地 JSON 文件降级。
-- **双通道采集与安全中继**：高频行情直连国内网络；深层基金配置通过 Cloudflare Worker 边缘中继（防封锁且阻断直连回退，保护源站 IP）。
+- **多链路智能路由与边缘分流**：国内高频行情接入直连网络通道；跨境及深度基金数据经由 Cloudflare Worker 边缘节点分流，平滑跨网抖动并提升系统整体可用性。
 
 ---
 
@@ -64,13 +63,13 @@ cp .env.example .env.local
 
 ```env
 REDIS_URL="redis://:password@127.0.0.1:6379/0"
-DATABASE_URL="postgres://postgres:password@127.0.0.1:5432/xanalytics"
-DEPLOY_SSH_ALIAS="a1"
+DATABASE_URL="postgres://postgres:password@127.0.0.1:5432/xdata"
+DEPLOY_SSH_ALIAS="remote-server"
 
 # 本地 Docker Compose 专用环境变量（配置独立运行的 PostgreSQL/Redis 容器）
 REDIS_PASSWORD="password"
 POSTGRES_PASSWORD="password"
-POSTGRES_DB="xanalytics"
+POSTGRES_DB="xdata"
 
 CF_WORKER_PROXY_URL="https://your-worker-proxy.domain"
 CF_WORKER_SECRET_KEY="your-secret-key"
@@ -94,6 +93,14 @@ Compose 会启动独立的 Redis 和 PostgreSQL 容器，应用通过容器网�
 
 ## 部署与生产运维
 
-本项目专注于业务逻辑与镜像构建。生产部署与基础设施编排由专用运维仓库收敛：
-- **发布入口**：统一使用 [`x-actions/deploy.sh`](https://github.com/xerafun/x-actions) 执行本地免密原生双机构建与发布（甲骨文 A1 与阿里云 ECS）。
-- **生产访问**：[https://data.xerafun.com](https://data.xerafun.com)（同时支持 `https://xera.dpdns.org/data/` 子路径）。
+本项目专注于业务逻辑与容器化交付。支持容器化跨平台多节点部署：
+- **容器构建**：标准 Docker 多阶段构建，支持 ARM64 / AMD64 双架构。
+- **自动化发布**：通过专用运维流水线执行容器滚动更新、配置热重载与在线健康检查。
+- **线上访问**：[https://data.xerafun.com](https://data.xerafun.com)
+
+---
+
+## 免责声明与开源协议
+
+- **免责声明**：本项目展示的所有金融市场行情、指数估值、基金持仓及量化数据均来源于公开合法信息渠道，仅供技术研究与学习交流参考，不构成任何形式的投资建议或买卖依据。作者不对任何因依赖本项目信息而导致的投资决策或直接/间接损失承担责任。市场有风险，投资需谨慎。
+- **开源协议**：本项目基于 [MIT License](LICENSE) 协议发布。
