@@ -408,19 +408,25 @@ class ChartController {
             '3Y': '近3年'
         };
 
-        const activePeriodKey = this.currentPeriod.toUpperCase();
+        const isSortName = sortCol === 'name';
+        const sortIconName = isSortName ? (isDesc ? ' ▼' : ' ▲') : '';
+        const isCurrentName = isSortName ? 'current-period-header' : '';
+
+        const isSortClose = sortCol === 'latest_close';
+        const sortIconClose = isSortClose ? (isDesc ? ' ▼' : ' ▲') : '';
+        const isCurrentClose = isSortClose ? 'current-period-header' : '';
 
         let tableHtml = `
             <div class="matrix-table-wrap">
                 <table class="matrix-table">
                     <thead>
                         <tr>
-                            <th class="col-index sortable" data-sort="name">指数名称</th>
-                            <th class="col-close sortable text-right" data-sort="latest_close">最新收盘</th>
+                            <th class="col-index sortable ${isCurrentName}" data-sort="name">指数名称${sortIconName}</th>
+                            <th class="col-close sortable text-right ${isCurrentClose}" data-sort="latest_close">最新收盘${sortIconClose}</th>
                             ${periods.map(p => {
                                 const isSort = sortCol === p;
                                 const sortIcon = isSort ? (isDesc ? ' ▼' : ' ▲') : '';
-                                const isCurrent = activePeriodKey === p ? 'current-period-header' : '';
+                                const isCurrent = isSort ? 'current-period-header' : '';
                                 return `<th class="col-ret sortable text-right ${isCurrent}" data-sort="${p}">${periodLabels[p]}${sortIcon}</th>`;
                             }).join('')}
                         </tr>
@@ -430,6 +436,7 @@ class ChartController {
 
         list.forEach(item => {
             const closeFormatted = item.latest_close != null ? Number(item.latest_close).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '--';
+            const isCurrentCloseCol = isSortClose ? 'current-period-cell' : '';
 
             tableHtml += `
                 <tr class="matrix-row">
@@ -440,7 +447,7 @@ class ChartController {
                             <span class="matrix-code">${item.code}</span>
                         </div>
                     </td>
-                    <td class="col-close text-right font-mono">${closeFormatted}</td>
+                    <td class="col-close text-right font-mono ${isCurrentCloseCol}">${closeFormatted}</td>
                     ${periods.map(p => {
                         const val = item.returns ? item.returns[p] : null;
                         let valStr = '--';
@@ -449,7 +456,7 @@ class ChartController {
                             valStr = (val > 0 ? '+' : '') + Number(val).toFixed(2) + '%';
                             cls = val > 0 ? 'val-up' : (val < 0 ? 'val-down' : 'val-flat');
                         }
-                        const isCurrentCol = activePeriodKey === p ? 'current-period-cell' : '';
+                        const isCurrentCol = sortCol === p ? 'current-period-cell' : '';
                         return `<td class="col-ret text-right font-mono ${cls} ${isCurrentCol}">${valStr}</td>`;
                     }).join('')}
                 </tr>

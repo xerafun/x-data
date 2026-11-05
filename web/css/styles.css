@@ -4538,9 +4538,17 @@ footer a:hover {
     z-index: 4;
 }
 
+.matrix-table th.col-index.current-period-header {
+    background: #edf5ff;
+}
+
 [data-theme="dark"] .matrix-table th.col-index {
     background: #1e293b;
     box-shadow: 2px 0 8px -2px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .matrix-table th.col-index.current-period-header {
+    background: #172554;
 }
 
 [data-theme="dark"] .matrix-table td.col-index {
