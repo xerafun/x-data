@@ -194,10 +194,9 @@ class App {
                 url.searchParams.delete('subtab');
             }
         }
-        if (tabId !== 'chart') {
-            url.searchParams.delete('index');
-            url.searchParams.delete('code');
-        }
+        url.searchParams.delete('index');
+        url.searchParams.delete('code');
+        url.searchParams.delete('symbol');
 
         if (updateHistory) {
             window.history.pushState({}, '', url.toString());

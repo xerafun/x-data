@@ -24,10 +24,13 @@ class ChartController {
     async loadData() {
         console.log('📈 加载图表中心数据...');
 
-        // 检查 URL 是否指定了特定指数 (如 ?tab=chart&index=SP500)
-        const urlCode = utils.getUrlParam('index') || utils.getUrlParam('code') || utils.getUrlParam('symbol');
-        if (urlCode) {
-            this.currentValuationIndex = urlCode.toUpperCase();
+        // 清理 URL 中可能残留的 index / code 参数，保持纯净的 ?tab=chart
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('index') || url.searchParams.has('code') || url.searchParams.has('symbol')) {
+            url.searchParams.delete('index');
+            url.searchParams.delete('code');
+            url.searchParams.delete('symbol');
+            window.history.replaceState({}, '', url.toString());
         }
 
         // 绑定估值 tab 事件与说明弹窗
@@ -503,14 +506,12 @@ class ChartController {
                 tab.classList.add('active');
                 this.currentValuationIndex = (tab.dataset.code || 'NDX').toUpperCase();
 
-                // 更新 URL 参数 (NDX 为默认值，非 NDX 时保留 index 参数)
+                // 清理可能残留的 index 参数，保持纯净的 ?tab=chart
                 const url = new URL(window.location.href);
-                if (this.currentValuationIndex !== 'NDX') {
-                    url.searchParams.set('index', this.currentValuationIndex);
-                } else {
+                if (url.searchParams.has('index')) {
                     url.searchParams.delete('index');
+                    window.history.replaceState({}, '', url.toString());
                 }
-                window.history.replaceState({}, '', url.toString());
 
                 this.loadValuation(this.currentValuationIndex);
             };
