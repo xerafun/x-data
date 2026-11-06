@@ -108,10 +108,10 @@ class AIMarketController {
                     <div class="ai-score-box">
                         <div class="ai-score-header">
                             <div class="ai-badge-label" style="display: flex; align-items: center; margin-bottom: 0;">
-                                <span>AI Market Heat（综合热度分）</span>
+                                <span>${data.model_title || 'AI Market Momentum（市场交易动能）'}</span>
                                 <button class="info-btn" id="info-ai-score" title="算法说明" style="margin-left: 6px; display: inline-flex; align-items: center;"><i data-lucide="help-circle" width="14"></i></button>
                             </div>
-                            <span class="ai-model-pill">七因子模型</span>
+                            <span class="ai-model-pill">${data.model_subtitle || '七因子动能模型'}</span>
                         </div>
 
                         <div class="ai-score-main-row">
@@ -128,10 +128,10 @@ class AIMarketController {
                                     </span>
                                 ` : ''}
                                 ${data.momentum_1d_pct != null ? `
-                                    <span class="ai-momentum-tag" title="${data.momentum_note || '跨时区异步加权动能'}" style="font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600; ${data.momentum_1d_pct > 0 ? 'background: var(--color-up-light, rgba(239, 68, 68, 0.12)); color: var(--color-up-dark, #dc2626);' : (data.momentum_1d_pct < 0 ? 'background: var(--color-down-light, rgba(34, 197, 94, 0.12)); color: var(--color-down-dark, #16a34a);' : 'background: rgba(0,0,0,0.05); color: var(--text-secondary);')}">
-                                        1D动能: ${data.momentum_1d_pct > 0 ? '+' : ''}${data.momentum_1d_pct.toFixed(2)}%
+                                    <span class="ai-momentum-tag" title="七层产业链市值加权即时综合动能" style="font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600; ${data.momentum_1d_pct > 0 ? 'background: var(--color-up-light, rgba(239, 68, 68, 0.12)); color: var(--color-up-dark, #dc2626);' : (data.momentum_1d_pct < 0 ? 'background: var(--color-down-light, rgba(34, 197, 94, 0.12)); color: var(--color-down-dark, #16a34a);' : 'background: rgba(0,0,0,0.05); color: var(--text-secondary);')}">
+                                        加权动能: ${data.momentum_1d_pct > 0 ? '+' : ''}${data.momentum_1d_pct.toFixed(2)}%
                                     </span>
-                                ` : (data.momentum_1d != null ? `<span class="ai-momentum-tag" style="font-size: 11px; padding: 2px 7px; border-radius: 4px; background: rgba(0,0,0,0.05); color: var(--text-secondary); font-weight: 500;">1D即时: ${data.momentum_1d}分</span>` : '')}
+                                ` : (data.momentum_1d != null ? `<span class="ai-momentum-tag" style="font-size: 11px; padding: 2px 7px; border-radius: 4px; background: rgba(0,0,0,0.05); color: var(--text-secondary); font-weight: 500;">动能: ${data.momentum_1d}分</span>` : '')}
                             </div>
                         </div>
 
@@ -152,9 +152,10 @@ class AIMarketController {
                         </div>
 
                         <div class="ai-score-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
-                            <span class="ai-footer-note" title="${data.momentum_note || '美股与A股时区错开异步合成'}">
-                                ${data.us_momentum_1d_pct != null ? `美股${data.us_market_status || '昨收'}: <strong style="color: ${data.us_momentum_1d_pct > 0 ? 'var(--color-up, #ef4444)' : (data.us_momentum_1d_pct < 0 ? 'var(--color-down, #22c55e)' : 'inherit')};">${data.us_momentum_1d_pct > 0 ? '+' : ''}${data.us_momentum_1d_pct}%</strong> · ` : ''}
-                                ${data.cn_momentum_1d_pct != null ? `A股${data.cn_market_status || '盘中'}: <strong style="color: ${data.cn_momentum_1d_pct > 0 ? 'var(--color-up, #ef4444)' : (data.cn_momentum_1d_pct < 0 ? 'var(--color-down, #22c55e)' : 'inherit')};">${data.cn_momentum_1d_pct > 0 ? '+' : ''}${data.cn_momentum_1d_pct}%</strong>` : '40%即时动能 + 60%滤波阻尼'}
+                            <span class="ai-footer-note" title="${data.momentum_note || '跨时区行情口径与交易状态'}">
+                                ${data.us_session_label || `美股: ${data.us_trade_date ? data.us_trade_date + ' ' : ''}${data.us_market_status || '昨收'}`}: <strong style="color: ${data.us_momentum_1d_pct > 0 ? 'var(--color-up, #ef4444)' : (data.us_momentum_1d_pct < 0 ? 'var(--color-down, #22c55e)' : 'inherit')};">${data.us_momentum_1d_pct > 0 ? '+' : ''}${data.us_momentum_1d_pct}%</strong>
+                                <span style="opacity: 0.5; margin: 0 4px;">·</span>
+                                ${data.cn_session_label || `A股: ${data.cn_trade_date ? data.cn_trade_date + ' ' : ''}${data.cn_market_status || '盘中'}`}: <strong style="color: ${data.cn_momentum_1d_pct > 0 ? 'var(--color-up, #ef4444)' : (data.cn_momentum_1d_pct < 0 ? 'var(--color-down, #22c55e)' : 'inherit')};">${data.cn_momentum_1d_pct > 0 ? '+' : ''}${data.cn_momentum_1d_pct}%</strong>
                             </span>
                             ${data.us_ai_pe ? `<span class="ai-footer-pe">美股 AI 组合 PE: <strong>${data.us_ai_pe}x</strong> <span style="font-size: 9.5px; color: var(--text-tertiary);">(调和平均)</span></span>` : ''}
                         </div>
@@ -700,13 +701,12 @@ class AIMarketController {
                 const bodyHtml = `
                     <div class="ai-info-modal" style="white-space: normal; font-size: 12px; color: var(--text-primary);">
                         <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px;">
-                            <div style="font-weight: 600; font-size: 12px; color: var(--color-primary, #3b82f6); margin-bottom: 4px;">平滑七因子双轨算法公式</div>
+                            <div style="font-weight: 600; font-size: 12px; color: var(--color-primary, #3b82f6); margin-bottom: 4px;">七因子非线性动能算法模型</div>
                             <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 10.5px; background: rgba(0,0,0,0.3); padding: 6px 8px; border-radius: 4px; color: #e2e8f0; margin-bottom: 6px; line-height: 1.45; word-break: break-word;">
-                                <div><span style="color:#93c5fd;">weighted_pct_raw</span> = L0×10% + L1×25% + L2×20% + L3×15% + L4×10% + L5×10% + L6×10%</div>
-                                <div style="margin-top: 2px;"><span style="color:#fcd34d;">momentum_1d</span> = Min(100, Max(0, 50.0 + weighted_pct_raw × 7.5))</div>
-                                <div style="margin-top: 2px;"><span style="color:#86efac;">cycle_score (平滑热度)</span> = 40% × 当期即时动能 + 60% × 滤波阻尼 (近5次采样窗口)</div>
+                                <div><span style="color:#93c5fd;">weighted_pct</span> = L0×10% + L1×25% + L2×20% + L3×15% + L4×10% + L5×10% + L6×10%</div>
+                                <div style="margin-top: 2px;"><span style="color:#fcd34d;">momentum_score</span> = 100 / (1 + exp(-0.28 × weighted_pct))</div>
                             </div>
-                            <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.4;">双轨模型：同时提供敏感反映今日盘中的【1D 即时动能】与低通滤波平滑报价噪音的【平滑综合热度分】（阻尼滤波基于近5次采样窗口，非跨日日线MA）。</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.4;">非线性平滑模型：基于半导体与算力资产波幅校准。0% 动能对应 50.0 分（多空平衡中枢）；在极端单日暴跌（如 -10%）时通过渐近曲线保留深度超卖刻度（约 6 分），杜绝硬归零饱和失真。</div>
                         </div>
 
                         ${weightsHtml}

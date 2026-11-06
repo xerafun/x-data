@@ -47,11 +47,13 @@ def get_us_spot_direct(symbols: List[str]) -> Dict[str, Dict[str, float]]:
                 if price is not None and change_pct is not None:
                     # 腾讯返回的键名可能大小写不同
                     sym = reverse_map.get(tsym, tsym)
+                    date_time = parts[30] if len(parts) > 30 else None
                     result[sym] = {
                         "price": price,
                         "change_pct": change_pct,
                         "pe": pe,
-                        "market_cap": market_cap
+                        "market_cap": market_cap,
+                        "date_time": date_time
                     }
     except Exception as e:
         logger.error(f"Tencent spot fetch error: {e}")

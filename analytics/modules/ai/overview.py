@@ -2,6 +2,7 @@
 AI 产业链火热度、周期评估与中美竞争分析终端 (机构级严谨数据驱动版)
 """
 
+import math
 import requests
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -12,6 +13,22 @@ from ...core.utils import safe_float, get_beijing_time
 from ...core.us_spot_helper import get_us_spot_direct
 from ...core.data_provider import data_provider
 from ...core.logger import logger
+
+
+def calculate_momentum_score(pct: float) -> float:
+    """
+    平滑非线性 S 曲线（Sigmoid）动能映射模型，替代生硬的线性截断：
+    1. 中枢对齐：动能为 0% 时严格输出 50.0 分（多空平衡基准）。
+    2. 灵敏区响应：日常 ±2%~3% 波动平滑对应 36.4 ~ 63.6 分。
+    3. 极端行情非线性渐近：单日极端暴跌（如 -10%）输出约 6.0 分，既准确落在
+       [0, 25] 极度超卖/冰点区间，又保留深度刻度区分度，避免生硬打满 0 分或 100 分。
+    """
+    try:
+        clamped_pct = max(-25.0, min(25.0, float(pct)))
+        score = 100.0 / (1.0 + math.exp(-0.28 * clamped_pct))
+        return round(score, 1)
+    except Exception:
+        return 50.0
 
 
 class AIOverview:
@@ -97,7 +114,7 @@ class AIOverview:
 
     @staticmethod
     @cached(
-        "ai:overview_v16", 
+        "ai:overview_v17", 
         ttl=settings.CACHE_TTL["ai_overview"],
         stale_ttl=settings.CACHE_TTL["ai_overview"] * settings.STALE_TTL_RATIO,
         sync_on_cold=True
@@ -112,6 +129,15 @@ class AIOverview:
             
             # 1. 批量获取美股核心标的行情与真实估值 (PE / 市值 / 涨跌)
             spot_map = get_us_spot_direct(AIOverview.US_AI_SYMBOLS)
+
+            # 提取美股最新行情实际归属的交易日 (如 "11-05")
+            us_trade_date = None
+            for sym in ["NVDA", "MSFT", "AAPL", "GOOGL", "AMD", "TSM"]:
+                if sym in spot_map and spot_map[sym].get("date_time"):
+                    raw_dt = str(spot_map[sym]["date_time"]).strip()[:10]
+                    if len(raw_dt) == 10 and raw_dt.count("-") == 2:
+                        us_trade_date = raw_dt[5:]
+                        break
             
             def get_stock(symbol: str, default_name: str) -> Dict[str, Any]:
                 if symbol in spot_map:
@@ -215,6 +241,7 @@ class AIOverview:
 
             # 2. 获取 A股 AI 核心龙头真实行情与 PE (优先腾讯通道，保障极速与真实 PE)
             cn_ai_leaders: List[Dict[str, Any]] = []
+            cn_trade_date = None
             try:
                 tencent_cn_codes = [x[0] for x in AIOverview.CN_AI_LEADERS_MAPPING]
                 cn_url = "http://qt.gtimg.cn/q=" + ",".join(tencent_cn_codes)
@@ -228,6 +255,9 @@ class AIOverview:
                         parts = v.strip('"').split("~")
                         if len(parts) > 45:
                             raw_code = k.replace("v_", "").strip()
+                            raw_dt = parts[30] if len(parts) > 30 else None
+                            if not cn_trade_date and raw_dt and len(raw_dt) >= 8:
+                                cn_trade_date = f"{raw_dt[4:6]}-{raw_dt[6:8]}"
                             cn_res_map[raw_code] = {
                                 "name": parts[1],
                                 "symbol": parts[2],
@@ -235,6 +265,7 @@ class AIOverview:
                                 "change_pct": safe_float(parts[32]),
                                 "pe": safe_float(parts[39]) if parts[39] and parts[39] != "--" else None,
                                 "market_cap": safe_float(parts[45]) if parts[45] and parts[45] != "--" else None,
+                                "date_time": raw_dt,
                                 "is_sector": False
                             }
                 
@@ -316,9 +347,15 @@ class AIOverview:
                 l5_raw * 0.10 + 
                 l6_raw * 0.10
             )
-            momentum_1d = round(min(100.0, max(0.0, 50.0 + weighted_pct_raw * 7.5)), 1)
+            # 使用基于半导体资产波幅校准的平滑 S 曲线映射，杜绝极端行情生硬截断饱和
+            momentum_1d = calculate_momentum_score(weighted_pct_raw)
 
             # 3.2 动态交易时段与跨市场背离感知
+            us_date_tag = f"{us_trade_date} " if us_trade_date else ""
+            cn_date_tag = f"{cn_trade_date} " if cn_trade_date else ""
+            us_session_label = f"美股: {us_date_tag}{us_market_status}"
+            cn_session_label = f"A股: {cn_date_tag}{cn_market_status}"
+
             cn_is_active = cn_market_status in ("盘中", "集合竞价")
             us_is_active = us_market_status in ("盘中交易", "盘前交易", "盘后交易")
 
@@ -466,7 +503,7 @@ class AIOverview:
                 "meta_quarterly_capex_b": 10.5
             }
 
-            # 7. AI 市场平滑热度分 (平滑七因子模型，兼顾短线动能与多日趋势)
+            # 7. AI 市场平滑动能分 (平滑七因子非线性动能模型，S曲线平滑映射)
             weighted_pct = (
                 l0_avg * 0.10 + 
                 l1_avg * 0.25 + 
@@ -476,8 +513,7 @@ class AIOverview:
                 l5_avg * 0.10 + 
                 l6_avg * 0.10
             )
-            heat_score = min(100.0, max(0.0, 50.0 + weighted_pct * 7.5))
-            heat_score = round(heat_score, 1)
+            heat_score = calculate_momentum_score(weighted_pct)
 
             # 8. AI 资金轮动健康度判定
             if is_cross_market_divergence and (cn_momentum_pct <= -2.0 or l6_avg <= -2.0):
@@ -795,13 +831,19 @@ class AIOverview:
                 "composite_momentum_1d_pct": round(weighted_pct_raw, 2),
                 "active_market": active_market,
                 "momentum_note": f"跨时区异步合成 · {active_market.get('divergence_note', '')}",
+                "us_trade_date": us_trade_date,
+                "cn_trade_date": cn_trade_date,
+                "us_session_label": us_session_label,
+                "cn_session_label": cn_session_label,
+                "model_title": "AI Market Momentum（市场交易动能）",
+                "model_subtitle": "七因子动能模型",
                 "us_market_status": us_market_status,
                 "cn_market_status": cn_market_status,
                 "market_statuses_summary": market_summary,
                 "market_heat_score": heat_score,
                 "industry_cycle_score": None,
-                "score_scope": "market_heat",
-                "score_note": f"平滑七因子双轨模型 (40%即时动能 + 60%滤波阻尼 | 美股 AI 组合 PE {us_ai_pe}x | 年化 CapEx ${hyperscaler_capex['annual_run_rate_b']}B | 美债 10Y {us_10y_yield:.2f}%)",
+                "score_scope": "market_momentum",
+                "score_note": f"七因子非线性动能模型 (S曲线平滑映射 | 原始加权动能 {weighted_pct_raw:+.2f}% | 美股 AI 组合 PE {us_ai_pe}x | 年化 CapEx ${hyperscaler_capex['annual_run_rate_b']}B | 美债 10Y {us_10y_yield:.2f}%)",
                 "cycle_phase": cycle_phase,
                 "cycle_status": cycle_status,
                 "cycle_desc": cycle_desc,
