@@ -36,15 +36,18 @@ class AIMarketController {
             return;
         }
 
-        const cycleScore = data.cycle_score !== undefined ? data.cycle_score : (data.heat_score || 46.3);
+        const cycleScore = (data.cycle_score !== undefined && data.cycle_score !== null)
+            ? data.cycle_score 
+            : ((data.heat_score !== undefined && data.heat_score !== null) ? data.heat_score : 50);
         const { 
             trend_str, risk_level, risk_class, cycle_phase, cycle_status, cycle_desc,
             us_cn_comparison, bubble_meter, rotation_mode, rotation_class, rotation_desc,
             historical_match, signals, layers 
         } = data;
 
-        // 计算 SVG Gauge 指针角度 (0~100 映射至 -80° ~ +80° 连续弧度区间)
-        const clampedScore = Math.max(0, Math.min(100, Number(cycleScore) || 50));
+        // 计算游标与指针位置 (0~100 映射，修复 0 分因 falsy 误兜底为 50 的问题)
+        const rawScore = Number(cycleScore);
+        const clampedScore = Math.max(0, Math.min(100, isNaN(rawScore) ? 50 : rawScore));
         const gaugeDegree = -80 + (clampedScore / 100) * 160;
 
         const isGreenUp = typeof APP_CONFIG !== 'undefined' && APP_CONFIG.colorMode === 'green-up-red-down';
