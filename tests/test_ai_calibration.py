@@ -83,28 +83,46 @@ class TestAICalibration(unittest.TestCase):
         us_momentum_pct = 0.83
         divergence_spread = round(cn_momentum_pct - us_momentum_pct, 2)
         is_cross_market_divergence = (
-            (cn_momentum_pct <= -2.0 and us_momentum_pct >= -0.2 and divergence_spread <= -2.5) or
-            (us_momentum_pct <= -2.0 and cn_momentum_pct >= -0.2 and divergence_spread >= 2.5) or
-            abs(divergence_spread) >= 3.5
+            (cn_momentum_pct <= -2.0 and us_momentum_pct >= -0.5 and divergence_spread <= -2.5) or
+            (us_momentum_pct <= -2.0 and cn_momentum_pct >= -0.5 and divergence_spread >= 2.5)
         )
         self.assertTrue(is_cross_market_divergence)
 
+        is_co_drop = (us_momentum_pct <= -2.0 and cn_momentum_pct <= -2.0)
+        is_co_rally = (us_momentum_pct >= 1.5 and cn_momentum_pct >= 1.5)
         l6_avg = -5.82
-        l0_avg = 0.26
-        l1_avg = 0.42
-        l5_avg = -1.68
 
-        if is_cross_market_divergence and (cn_momentum_pct <= -2.0 or l6_avg <= -2.0):
-            rotation_mode = "中美背离 (美股稳健·A股回调)"
+        if is_co_drop:
+            rotation_mode = "中美共振 (双边深度承压)"
             rotation_class = "warning"
-        elif l0_avg > 0 and l1_avg >= l5_avg and l1_avg >= l6_avg:
-            rotation_mode = "健康轮动 (能源与算力双驱动)"
+        elif is_co_rally:
+            rotation_mode = "中美共振 (双边协同走强)"
             rotation_class = "healthy"
+        elif us_momentum_pct >= -0.5 and (cn_momentum_pct <= -2.0 or l6_avg <= -2.0):
+            rotation_mode = "中美分化 (美股抗跌·A股回调)"
+            rotation_class = "warning"
         else:
             rotation_mode = "均衡传导 (扩散中)"
             rotation_class = "neutral"
 
-        self.assertEqual(rotation_mode, "中美背离 (美股稳健·A股回调)")
+        self.assertEqual(rotation_mode, "中美分化 (美股抗跌·A股回调)")
+        self.assertEqual(rotation_class, "warning")
+
+    def test_rotation_mode_cross_market_co_drop(self):
+        """When both US shares (-9.87%) and A shares (-6.31%) drop heavily, it is co-drop, NOT divergence or steady US"""
+        us_momentum_pct = -9.87
+        cn_momentum_pct = -6.31
+        is_co_drop = (us_momentum_pct <= -2.0 and cn_momentum_pct <= -2.0)
+        self.assertTrue(is_co_drop)
+
+        if is_co_drop:
+            rotation_mode = "中美共振 (双边深度承压)"
+            rotation_class = "warning"
+        else:
+            rotation_mode = "均衡传导 (扩散中)"
+            rotation_class = "neutral"
+
+        self.assertEqual(rotation_mode, "中美共振 (双边深度承压)")
         self.assertEqual(rotation_class, "warning")
 
     def test_dynamic_historical_insight(self):

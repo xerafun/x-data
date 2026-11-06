@@ -114,7 +114,7 @@ class AIOverview:
 
     @staticmethod
     @cached(
-        "ai:overview_v17", 
+        "ai:overview_v18", 
         ttl=settings.CACHE_TTL["ai_overview"],
         stale_ttl=settings.CACHE_TTL["ai_overview"] * settings.STALE_TTL_RATIO,
         sync_on_cold=True
@@ -360,27 +360,40 @@ class AIOverview:
             us_is_active = us_market_status in ("盘中交易", "盘前交易", "盘后交易")
 
             divergence_spread = round(cn_momentum_pct - us_momentum_pct, 2)
-            # 背离判断：单边大跌(<= -2.0%)且与另一侧利差超 2.5%，或一方为正而另一方跌幅显著
+            # 真实背离判定：双边方向相悖（一侧抗跌或上涨 >= -0.5%，另一侧显著回调 <= -2.0%，且利差绝对值 >= 2.5%）
+            # 若双边同向大跌或同向大涨，属于共振，绝非背离
             is_cross_market_divergence = (
-                (cn_momentum_pct <= -2.0 and us_momentum_pct >= -0.2 and divergence_spread <= -2.5) or
-                (us_momentum_pct <= -2.0 and cn_momentum_pct >= -0.2 and divergence_spread >= 2.5) or
-                abs(divergence_spread) >= 3.5
+                (cn_momentum_pct <= -2.0 and us_momentum_pct >= -0.5 and divergence_spread <= -2.5) or
+                (us_momentum_pct <= -2.0 and cn_momentum_pct >= -0.5 and divergence_spread >= 2.5)
             )
+
+            # 双边共振大跌判定 (中美双双回调 <= -2.0%)
+            is_co_drop = (us_momentum_pct <= -2.0 and cn_momentum_pct <= -2.0)
+            # 双边共振走强判定 (中美双双上行 >= 1.5%)
+            is_co_rally = (us_momentum_pct >= 1.5 and cn_momentum_pct >= 1.5)
 
             if cn_is_active and not us_is_active:
                 active_market_name = "A股"
                 active_market_status = cn_market_status
                 active_momentum_pct = cn_momentum_pct
-                if is_cross_market_divergence and cn_momentum_pct <= -2.0:
-                    divergence_note = f"A股盘中下挫 ({cn_momentum_pct:+.2f}%)，与美股昨收走势背离"
+                if is_co_drop:
+                    divergence_note = f"A股受美股外盘急跌拖累共振下挫 (美股 {us_momentum_pct:+.2f}% · A股 {cn_momentum_pct:+.2f}%)"
+                elif cn_momentum_pct <= -2.0 and us_momentum_pct >= -0.5:
+                    divergence_note = f"A股盘中下挫 ({cn_momentum_pct:+.2f}%)，与美股外盘走势分化"
+                elif cn_momentum_pct >= 0.5 and us_momentum_pct <= -2.0:
+                    divergence_note = f"A股盘中逆势抗跌 ({cn_momentum_pct:+.2f}%)，脱离美股弱势"
                 else:
                     divergence_note = f"A股交易中，美股休市 (以A股盘中即时动能为主)"
             elif us_is_active and not cn_is_active:
                 active_market_name = "美股"
                 active_market_status = us_market_status
                 active_momentum_pct = us_momentum_pct
-                if is_cross_market_divergence and us_momentum_pct <= -2.0:
-                    divergence_note = f"美股盘中承压 ({us_momentum_pct:+.2f}%)，与A股走势分化"
+                if is_co_drop:
+                    divergence_note = f"美股盘中承压，中美双边共振回调 (美股 {us_momentum_pct:+.2f}% · A股 {cn_momentum_pct:+.2f}%)"
+                elif us_momentum_pct <= -2.0 and cn_momentum_pct >= -0.5:
+                    divergence_note = f"美股盘中承压 ({us_momentum_pct:+.2f}%)，与A股收盘走势分化"
+                elif us_momentum_pct >= 0.5 and cn_momentum_pct <= -2.0:
+                    divergence_note = f"美股盘中逆势反弹 ({us_momentum_pct:+.2f}%)，脱离A股弱势"
                 else:
                     divergence_note = f"美股交易中，A股休市 (以美股即时动能为主)"
             elif cn_is_active and us_is_active:
@@ -392,7 +405,12 @@ class AIOverview:
                 active_market_name = "全球休市"
                 active_market_status = "休市结算"
                 active_momentum_pct = round(weighted_pct_raw, 2)
-                divergence_note = "双边市场均处于休市/结算时段"
+                if is_co_drop:
+                    divergence_note = f"双边休市结算 · 中美共振深度承压 (美股 {us_momentum_pct:+.2f}% · A股 {cn_momentum_pct:+.2f}%)"
+                elif is_co_rally:
+                    divergence_note = f"双边休市结算 · 中美共振协同走强 (美股 {us_momentum_pct:+.2f}% · A股 {cn_momentum_pct:+.2f}%)"
+                else:
+                    divergence_note = "双边市场均处于休市/结算时段"
 
             active_market = {
                 "name": active_market_name,
@@ -516,14 +534,26 @@ class AIOverview:
             heat_score = calculate_momentum_score(weighted_pct)
 
             # 8. AI 资金轮动健康度判定
-            if is_cross_market_divergence and (cn_momentum_pct <= -2.0 or l6_avg <= -2.0):
-                rotation_mode = "中美背离 (美股稳健·A股回调)"
+            if is_co_drop:
+                rotation_mode = "中美共振 (双边深度承压)"
                 rotation_class = "warning"
-                rotation_desc = f"跨市场流动性分化：美股核心硬件保持基本面韧性，但国内 A 股出现较强情绪退潮 ({cn_momentum_pct:+.2f}%)，警惕流动性折价与情绪扩散。"
-            elif is_cross_market_divergence and (us_momentum_pct <= -2.0 or l1_avg <= -2.0):
-                rotation_mode = "中美背离 (A股韧性·美股承压)"
+                rotation_desc = f"跨市场系统性回调：美股 AI 核心硬件深度调整 ({us_momentum_pct:+.2f}%)，国内 A 股同步承压 ({cn_momentum_pct:+.2f}%)，避险情绪扩散，全产业链处于风险释放期。"
+            elif is_co_rally:
+                rotation_mode = "中美共振 (双边协同走强)"
+                rotation_class = "healthy"
+                rotation_desc = f"全球 AI 资产协同走强：美股核心硬件领涨 ({us_momentum_pct:+.2f}%)，国内 A 股同步活跃 ({cn_momentum_pct:+.2f}%)，全产业链风险偏好提升。"
+            elif us_momentum_pct >= -0.5 and (cn_momentum_pct <= -2.0 or l6_avg <= -2.0):
+                rotation_mode = "中美分化 (美股抗跌·A股回调)"
                 rotation_class = "warning"
-                rotation_desc = f"跨市场分化：美股算力板块盘中承压回调 ({us_momentum_pct:+.2f}%)，国内 A 股相对抗跌，需关注外盘外溢传导。"
+                rotation_desc = f"跨市场流动性分化：美股核心资产表现抗跌 ({us_momentum_pct:+.2f}%)，但国内 A 股出现较强情绪退潮 ({cn_momentum_pct:+.2f}%)，警惕流动性折价与情绪扩散。"
+            elif cn_momentum_pct >= -0.5 and (us_momentum_pct <= -2.0 or l1_avg <= -2.0):
+                rotation_mode = "中美分化 (A股抗跌·美股承压)"
+                rotation_class = "warning"
+                rotation_desc = f"跨市场分化：美股算力板块明显回调 ({us_momentum_pct:+.2f}%)，国内 A 股相对抗跌 ({cn_momentum_pct:+.2f}%)，需关注外盘外溢传导。"
+            elif us_momentum_pct <= -3.0 and cn_momentum_pct < 0 and divergence_spread >= 3.0:
+                rotation_mode = "外盘领跌 (美股重挫·A股承压)"
+                rotation_class = "warning"
+                rotation_desc = f"外盘情绪传导：美股 AI 硬件深度受挫 ({us_momentum_pct:+.2f}%)，A 股跌幅相对较窄 ({cn_momentum_pct:+.2f}%) 但仍受外盘拖累承压。"
             elif l0_avg > 0 and l1_avg >= l5_avg and l1_avg >= l6_avg:
                 rotation_mode = "健康轮动 (能源与算力双驱动)"
                 rotation_class = "healthy"
