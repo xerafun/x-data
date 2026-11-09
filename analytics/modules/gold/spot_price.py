@@ -18,7 +18,7 @@ from ...core.logger import logger
 class MetalSpotPrice:
     """主流金属价格分析 (国际现货 + COMEX 期货主力)"""
 
-    # 主流期货金属合约配置 (COMEX/NYMEX)
+    # 主流期货金属合约配置 (COMEX)
     FUTURES_METALS = [
         {
             "code": "GC00Y",
@@ -37,33 +37,6 @@ class MetalSpotPrice:
             "badge": "期货主力",
             "desc": "COMEX主力连续",
             "source": "COMEX",
-        },
-        {
-            "code": "HG00Y",
-            "name": "COMEX 铜",
-            "unit": "USD/lb",
-            "category": "futures",
-            "badge": "期货主力",
-            "desc": "COMEX主力连续",
-            "source": "COMEX",
-        },
-        {
-            "code": "PL00Y",
-            "name": "NYMEX 铂金",
-            "unit": "USD/oz",
-            "category": "futures",
-            "badge": "期货",
-            "desc": "NYMEX连续",
-            "source": "NYMEX",
-        },
-        {
-            "code": "PA00Y",
-            "name": "NYMEX 钯金",
-            "unit": "USD/oz",
-            "category": "futures",
-            "badge": "期货",
-            "desc": "NYMEX连续",
-            "source": "NYMEX",
         },
     ]
 
@@ -121,19 +94,19 @@ class MetalSpotPrice:
 
     @staticmethod
     @cached(
-        "metals:spot_price_v2",
+        "metals:spot_price_v3",
         ttl=settings.CACHE_TTL.get("metals", 300),
         stale_ttl=settings.CACHE_TTL.get("metals", 300) * settings.STALE_TTL_RATIO,
         sync_on_cold=True,
     )
     def get_spot_prices() -> List[Dict[str, Any]]:
         """
-        获取主流金属价格 (国际现货 + COMEX 期货主力对照)
+        获取主流贵金属价格 (国际现货 + COMEX 期货主力对照: 黄金与白银)
         """
         # 1. 获取国际现货行情 (伦敦金 XAU, 伦敦银 XAG)
         spot_results = MetalSpotPrice._fetch_sina_spot_metals()
 
-        # 2. 获取 COMEX / NYMEX 期货主力行情
+        # 2. 获取 COMEX 期货主力行情
         futures_results = []
         try:
             df = akshare_call_with_retry(ak.futures_global_spot_em)
@@ -166,13 +139,12 @@ class MetalSpotPrice:
         except Exception as e:
             logger.error(f"获取 COMEX 期货金属价格失败: {e}")
 
-        # 3. 组织最终列表：现货与期货成对排列对照
+        # 3. 组织最终列表：现货与期货成对排列对照 (黄金、白银)
         final_list = []
         gold_spot = [x for x in spot_results if x["code"] == "XAU"]
         gold_fut = [x for x in futures_results if x["code"] == "GC00Y"]
         silver_spot = [x for x in spot_results if x["code"] == "XAG"]
         silver_fut = [x for x in futures_results if x["code"] == "SI00Y"]
-        other_fut = [x for x in futures_results if x["code"] not in ["GC00Y", "SI00Y"]]
 
         if gold_spot:
             final_list.extend(gold_spot)
@@ -182,7 +154,6 @@ class MetalSpotPrice:
             final_list.extend(silver_spot)
         if silver_fut:
             final_list.extend(silver_fut)
-        final_list.extend(other_fut)
 
         return final_list
 
