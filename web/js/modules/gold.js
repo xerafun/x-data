@@ -90,7 +90,13 @@ class GoldController {
         <li style="margin-bottom: 4px;"><b>远月升水（Contango）</b>：期货价格包含了未来数月的<b>资金利息成本（Cost of Carry）、实物仓储保管费与保险费</b>。因此在当前利率环境下，远期期货合约通常比即期现货高出数十美元（当前约溢价 $60~$70）。</li>
     </ul>
 
-    <p style="font-size: 11px; color: var(--text-secondary); font-style: italic; border-top: 1px solid var(--border-light); padding-top: 8px; margin: 0;">提示：系统同时呈现两大标的，方便现货投资者与期货衍生品交易者对照参考。</p>
+    <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 4px; color: #16a34a;">3. 上金所黄金（Au99.99 / 上海金）</h4>
+    <ul style="margin: 0 0 10px 20px; padding: 0; font-size: 13px;">
+        <li style="margin-bottom: 4px;"><b>交易机制</b>：上海黄金交易所集中撮合，人民币计价（元/克），即期含税实物交割。</li>
+        <li style="margin-bottom: 4px;"><b>应用场景</b>：国内商业银行积存金、投资金条、黄金首饰零售的最权威官方定价基准。</li>
+    </ul>
+
+    <p style="font-size: 11px; color: var(--text-secondary); font-style: italic; border-top: 1px solid var(--border-light); padding-top: 8px; margin: 0;">提示：系统同时呈现国际美元现货/期货与国内人民币现货三大标的，方便投资者全景对照参考。</p>
 </div>
                 `);
             };
@@ -374,6 +380,7 @@ class GoldController {
             const change = utils.formatChange(item.change_pct);
             const badgeHtml = item.badge ? `<span class="metal-type-badge metal-badge-${item.category || 'futures'}">${item.badge}</span>` : '';
             const descHtml = item.desc ? `<span class="metal-desc">${item.desc}</span>` : '';
+            const currencySymbol = item.currency_symbol || (item.unit && item.unit.startsWith('CNY') ? '¥' : '$');
             return `
                 <div class="list-item">
                     <div class="item-main">
@@ -387,7 +394,7 @@ class GoldController {
                         </div>
                     </div>
                     <div style="text-align: right;">
-                        <div class="item-value">$${utils.formatNumber(item.price)}</div>
+                        <div class="item-value">${currencySymbol}${utils.formatNumber(item.price)}</div>
                         <div class="item-change ${change.class}">${change.text}</div>
                     </div>
                 </div>
