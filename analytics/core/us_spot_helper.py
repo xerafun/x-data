@@ -8,54 +8,63 @@ def get_us_spot_direct(symbols: List[str]) -> Dict[str, Dict[str, float]]:
     获取美股/指数的实时极速行情，主要用于盘中替代 Akshare 的滞后日线。
     采用腾讯接口，避免东方财富对云服务器的 IP 封锁。
     参数 symbols 为代码列表，如 [".IXIC", ".INX", ".DJI", "QQQ", "XLK"]
+    支持大批量代码自动分批请求（25个/批），并过滤非法 URL 字符，防止接口截断。
     """
     if not symbols:
         return {}
 
-    tencent_symbols = []
-    reverse_map = {}
-    
-    for sym in symbols:
-        tsym = f"us{sym}"
-        tencent_symbols.append(tsym)
-        reverse_map[tsym.lower()] = sym
-        reverse_map[tsym] = sym
+    # 清理并过滤掉包含 & 等 URL 分隔符的非法代码
+    clean_symbols = [s.strip() for s in symbols if s and isinstance(s, str) and "&" not in s]
+    if not clean_symbols:
+        return {}
 
-    # 腾讯支持批量获取，直接拼接
-    url = "http://qt.gtimg.cn/q=" + ",".join(tencent_symbols)
-    
     result = {}
-    try:
-        r = requests.get(url, timeout=5)
-        for line in r.text.split(";"):
-            line = line.strip()
-            if not line or "=" not in line:
-                continue
-                
-            key_part, data_part = line.split("=", 1)
-            tsym = key_part.replace("v_", "")
-            
-            data_str = data_part.strip('"')
-            parts = data_str.split("~")
-            
-            if len(parts) >= 33 and parts[0] == "200":
-                price = safe_float(parts[3])
-                change_pct = safe_float(parts[32])
-                pe = safe_float(parts[39]) if len(parts) > 39 else None
-                market_cap = safe_float(parts[45]) if len(parts) > 45 else None
-                
-                if price is not None and change_pct is not None:
-                    # 腾讯返回的键名可能大小写不同
-                    sym = reverse_map.get(tsym, tsym)
-                    date_time = parts[30] if len(parts) > 30 else None
-                    result[sym] = {
-                        "price": price,
-                        "change_pct": change_pct,
-                        "pe": pe,
-                        "market_cap": market_cap,
-                        "date_time": date_time
-                    }
-    except Exception as e:
-        logger.error(f"Tencent spot fetch error: {e}")
-        
+    chunk_size = 25
+
+    for i in range(0, len(clean_symbols), chunk_size):
+        chunk = clean_symbols[i:i + chunk_size]
+        tencent_symbols = []
+        reverse_map = {}
+
+        for sym in chunk:
+            tsym = f"us{sym}"
+            tencent_symbols.append(tsym)
+            reverse_map[tsym.lower()] = sym
+            reverse_map[tsym] = sym
+
+        url = "http://qt.gtimg.cn/q=" + ",".join(tencent_symbols)
+
+        try:
+            r = requests.get(url, timeout=5)
+            for line in r.text.split(";"):
+                line = line.strip()
+                if not line or "=" not in line:
+                    continue
+
+                key_part, data_part = line.split("=", 1)
+                tsym = key_part.replace("v_", "").strip()
+
+                data_str = data_part.strip('"')
+                parts = data_str.split("~")
+
+                if len(parts) >= 33 and parts[0] == "200":
+                    price = safe_float(parts[3])
+                    change_pct = safe_float(parts[32])
+                    pe = safe_float(parts[39]) if len(parts) > 39 else None
+                    market_cap = safe_float(parts[45]) if len(parts) > 45 else None
+
+                    if price is not None and change_pct is not None:
+                        # 腾讯返回的键名可能大小写不同
+                        sym = reverse_map.get(tsym) or reverse_map.get(tsym.lower()) or tsym
+                        date_time = parts[30] if len(parts) > 30 else None
+                        result[sym] = {
+                            "price": price,
+                            "change_pct": change_pct,
+                            "pe": pe,
+                            "market_cap": market_cap,
+                            "date_time": date_time
+                        }
+        except Exception as e:
+            logger.error(f"Tencent spot fetch error: {e}")
+
     return result

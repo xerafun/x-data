@@ -501,11 +501,11 @@
       "action_label": "增持 +22.9%"
     },
     {
-      "symbol": "PG&E",
-      "name": "Pg&E Corp",
+      "symbol": "PCG",
+      "name": "太平洋煤气电力",
       "raw_name": "PG&E CORP",
       "cusip": "69331C108",
-      "sector": "其他通用",
+      "sector": "公共事业",
       "value": 99764701,
       "shares": 5931314,
       "rank": 38,

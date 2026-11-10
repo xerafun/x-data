@@ -98,7 +98,8 @@ NAME_KEYWORD_MAP: Dict[str, Tuple[str, str, str]] = {
     "MARVELL": ("MRVL", "美满电子", "网络与存储芯片"),
     "VIPSHOP": ("VIPS", "唯品会", "特卖电商"),
     "ALIBABA": ("BABA", "阿里巴巴", "电商与云计算"),
-    "SPDR S&P 500": ("SPY", "标普500 ETF", "宽基指数")
+    "SPDR S&P 500": ("SPY", "标普500 ETF", "宽基指数"),
+    "PG&E": ("PCG", "太平洋煤气电力", "公共事业")
 }
 
 def resolve_ticker(cusip: str, name: str) -> Tuple[str, str, str]:
@@ -115,6 +116,7 @@ def resolve_ticker(cusip: str, name: str) -> Tuple[str, str, str]:
             return item
     
     # Fallback to sanitized uppercase acronym
-    words = [w for w in clean_name.replace(",", " ").replace(".", " ").split() if w not in ("INC", "CORP", "LTD", "PLC", "CO", "DEL", "HLDG", "HLDGS", "THE", "SPONSORED", "ADS", "CL", "A", "B", "C")]
-    fallback_sym = words[0][:5] if words else clean_name[:5]
+    words = [w for w in clean_name.replace(",", " ").replace(".", " ").replace("&", " ").split() if w not in ("INC", "CORP", "LTD", "PLC", "CO", "DEL", "HLDG", "HLDGS", "THE", "SPONSORED", "ADS", "CL", "A", "B", "C")]
+    raw_sym = words[0][:5] if words else clean_name[:5]
+    fallback_sym = "".join(c for c in raw_sym if c.isalnum() or c == ".")
     return (fallback_sym, clean_name.title(), "其他通用")
