@@ -203,8 +203,19 @@ class App {
         if (tabId !== 'holdings') {
             url.searchParams.delete('manager');
         } else {
-            if (window.holdingsController && window.holdingsController.currentManagerId) {
-                url.searchParams.set('manager', window.holdingsController.currentManagerId);
+            const urlManager = url.searchParams.get('manager');
+            const validManagers = ['buffett', 'duan', 'lilu', 'burry', 'dalio', 'hillhouse'];
+            if (window.holdingsController) {
+                if (urlManager && validManagers.includes(urlManager)) {
+                    window.holdingsController.currentManagerId = urlManager;
+                }
+                if (window.holdingsController.currentManagerId && window.holdingsController.currentManagerId !== 'duan') {
+                    url.searchParams.set('manager', window.holdingsController.currentManagerId);
+                } else {
+                    url.searchParams.delete('manager');
+                }
+            } else if (!urlManager || urlManager === 'duan' || !validManagers.includes(urlManager)) {
+                url.searchParams.delete('manager');
             }
         }
         url.searchParams.delete('index');

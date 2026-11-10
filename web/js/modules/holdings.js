@@ -63,11 +63,15 @@ class HoldingsController {
         if (this.currentManagerId === managerId) return;
         this.currentManagerId = managerId;
 
-        // 1. 同步写入 URL query param，保证刷新后记忆当前选中的舵手
+        // 1. 同步更新 URL query param (默认段永平时保持干净 URL，切换非默认时记录)
         try {
             const url = new URL(window.location.href);
             url.searchParams.set('tab', 'holdings');
-            url.searchParams.set('manager', managerId);
+            if (managerId && managerId !== 'duan') {
+                url.searchParams.set('manager', managerId);
+            } else {
+                url.searchParams.delete('manager');
+            }
             window.history.replaceState({}, '', url.toString());
         } catch (e) {}
 
