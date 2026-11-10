@@ -19,7 +19,8 @@ class App {
             'chart': new ChartController(),
             'ai': new AIMarketController(),
             'gold': new GoldController(),
-            'qdii': new QDIIController()
+            'qdii': new QDIIController(),
+            'holdings': new HoldingsController()
         };
 
         this.init();
@@ -36,6 +37,7 @@ class App {
             'ai': 'AI',
             'gold': 'Gold',
             'qdii': 'QDII',
+            'holdings': 'Holdings',
         };
         const sectionTitle = titles[tabId] || 'X-Data';
         return sectionTitle === 'X-Data' ? sectionTitle : `${sectionTitle}｜X-Data`;
@@ -104,6 +106,10 @@ class App {
                     case '5':
                         event.preventDefault();
                         this.switchTab('qdii');
+                        break;
+                    case '6':
+                        event.preventDefault();
+                        this.switchTab('holdings');
                         break;
                 }
             }

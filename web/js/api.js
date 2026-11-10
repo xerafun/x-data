@@ -351,6 +351,15 @@ class API {
         return this.request('/chart/indices-comparison');
     }
 
+    // 顶级机构持仓 13F API
+    async getHoldingsOverview() {
+        return this.request('/holdings/overview');
+    }
+
+    async getManagerDetail(managerId) {
+        return this.request(`/holdings/investor/${managerId}`);
+    }
+
     async triggerWarmup() {
         return this.request('/api/cache/warmup', { method: 'POST' });
     }

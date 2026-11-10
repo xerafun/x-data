@@ -92,3 +92,15 @@ def test_qdii_routes():
         response = requests.get(f"{BASE_URL}{route}")
         assert response.status_code in (200, 503, 202)
 
+
+def test_holdings_routes():
+    routes = [
+        "/holdings/overview",
+        "/holdings/investor/duan",
+        "/holdings/investor/buffett"
+    ]
+    for route in routes:
+        response = requests.get(f"{BASE_URL}{route}")
+        assert response.status_code in (200, 503, 202)
+
+
