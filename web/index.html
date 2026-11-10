@@ -16,7 +16,7 @@
 
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <script src="js/lucide.min.js?v=33"></script>
-    <link rel="stylesheet" href="css/styles.css?v=73">
+    <link rel="stylesheet" href="css/styles.css?v=74">
 </head>
 
 <body>
@@ -410,14 +410,21 @@
             <div class="section-header" style="flex-wrap: wrap; gap: 12px;">
                 <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: 1;">
                     <h2 class="section-title" style="margin: 0; white-space: nowrap;">Holdings</h2>
-                    <span style="font-size: 11px; color: var(--text-secondary); background: var(--bg-subtle); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border-light);">美股 13F 顶级舵手持仓风向标</span>
+                    <div class="holdings-filter-group">
+                        <button class="holdings-filter-btn active" data-manager="buffett">巴菲特</button>
+                        <button class="holdings-filter-btn" data-manager="duan">段永平</button>
+                        <button class="holdings-filter-btn" data-manager="lilu">李录</button>
+                        <button class="holdings-filter-btn" data-manager="burry">伯里</button>
+                        <button class="holdings-filter-btn" data-manager="dalio">达利欧</button>
+                        <button class="holdings-filter-btn" data-manager="hillhouse">高瓴</button>
+                    </div>
                 </div>
                 <button class="refresh-btn" onclick="window.app.refreshCurrentTab(true)" title="点击刷新"><i data-lucide="refresh-cw" width="14"></i> 刷新</button>
             </div>
 
             <!-- 持仓模块主容器 -->
             <div id="holdings-container">
-                <div class="loading"><i data-lucide="loader-2" class="spin"></i> 正在加载顶级机构持仓数据...</div>
+                <div class="loading"><i data-lucide="loader-2" class="spin"></i> 数据加载中...</div>
             </div>
         </section>
 
@@ -452,8 +459,8 @@
     <script src="js/modules/ai.js?v=63"></script>
     <script src="js/modules/gold.js?v=48"></script>
     <script src="js/modules/qdii.js?v=82"></script>
-    <script src="js/modules/holdings.js?v=5"></script>
-    <script src="js/main.js?v=41"></script>
+    <script src="js/modules/holdings.js?v=6"></script>
+    <script src="js/main.js?v=42"></script>
     <script>lucide.createIcons();</script>
 </body>
 
