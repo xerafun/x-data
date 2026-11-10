@@ -114,7 +114,7 @@ class AIOverview:
 
     @staticmethod
     @cached(
-        "ai:overview_v18", 
+        "ai:overview_v19", 
         ttl=settings.CACHE_TTL["ai_overview"],
         stale_ttl=settings.CACHE_TTL["ai_overview"] * settings.STALE_TTL_RATIO,
         sync_on_cold=True
@@ -497,10 +497,6 @@ class AIOverview:
             us_pe_deviation_pct = round(((us_ai_pe - us_pe_benchmark) / us_pe_benchmark) * 100, 1)
             cn_pe_deviation_pct = round(((cn_ai_pe - cn_pe_benchmark) / cn_pe_benchmark) * 100, 1)
 
-            # 估值安全性评分 (满分 30 分，分值越高安全边际越大、估值泡沫越小)
-            us_safety = round(max(5.0, min(30.0, 30.0 - max(0.0, (us_ai_pe - 22.0)) * 0.55)), 1)
-            cn_safety = round(max(5.0, min(30.0, 30.0 - max(0.0, (cn_ai_pe - 35.0)) * 0.22)), 1)
-
             # 泡沫风险指数 (0~100 分，融合 真实PE偏离度 + 利率折现溢价 + 盘中动能)
             # 当 10Y 美债收益率 > 4.3% 时，高估值折现压力加大
             rate_penalty = max(0.0, (us_10y_yield - 4.20) * 12.0)
@@ -615,31 +611,54 @@ class AIOverview:
                 risk_level = "中等"
                 risk_class = "medium"
 
-            # 10. 中美 AI 五维对比模型 (真动态算力动能 + 真实PE估值 + 财报基准)
-            # 算力基础：结构基准 (美18.0 / 中11.5) + L1/L6盘中加权动能增量联动
-            us_compute = round(min(20.0, max(12.0, 18.0 + l1_avg * 0.35)), 1)
-            cn_compute = round(min(20.0, max(8.0, 11.5 + l6_avg * 0.40)), 1)
-
-            # 商业化程度：结构基准 (美16.0 / 中13.0) + L5应用层动能联动
-            us_commercial = round(min(20.0, max(10.0, 16.0 + l5_avg * 0.30)), 1)
-            cn_commercial = round(min(20.0, max(8.0, 13.0 + l6_avg * 0.25)), 1)
-
+            # 10. 中美 AI 产业五维对比模型 (宏观产业基准 · 100分制)
+            # 剥离短期股价扰动与二级估值PE（估值已由独立泡沫温度计承载），统一 0-100 分制，聚焦实体产业与生态竞争力
             us_cn_comparison = {
-                "compute_base": {"us": us_compute, "cn": cn_compute, "max": 20, "label": "算力基础", "is_dynamic": True},
-                "capex_investment": {"us": 18.0, "cn": 14.5, "max": 20, "label": "资本投入", "is_dynamic": False},
-                "commercialization": {"us": us_commercial, "cn": cn_commercial, "max": 20, "label": "商业化程度", "is_dynamic": True},
-                "valuation_safety": {
-                    "us": us_safety, 
-                    "cn": cn_safety, 
-                    "max": 30, 
-                    "label": "估值安全性", 
-                    "is_dynamic": True,
-                    "us_pe": us_ai_pe, 
-                    "cn_pe": cn_ai_pe,
-                    "us_deviation_pct": us_pe_deviation_pct,
-                    "cn_deviation_pct": cn_pe_deviation_pct
+                "compute_capacity": {
+                    "us": 90.0,
+                    "cn": 55.0,
+                    "max": 100,
+                    "label": "算力供给",
+                    "metric": "AI加速器交付/算力集群储备",
+                    "source": "Top500 / 供应链交付估算",
+                    "desc": "考察先进算力集群可用性、高端 GPU 储备与数据中心电力供给配套"
                 },
-                "completeness": {"us": 9.0, "cn": 7.8, "max": 10, "label": "产业链完整度", "is_dynamic": False}
+                "capex_intensity": {
+                    "us": 92.0,
+                    "cn": 68.0,
+                    "max": 100,
+                    "label": "资本投入",
+                    "metric": f"北美云巨头年化 ${hyperscaler_capex['annual_run_rate_b']}B CapEx vs 国内头部投入",
+                    "source": "各巨头最新财报与 CapEx 指引",
+                    "desc": "反映超大规模云服务商与科技巨头对 AI 基建及研发的持续资本开支强度"
+                },
+                "commercial_adoption": {
+                    "us": 82.0,
+                    "cn": 62.0,
+                    "max": 100,
+                    "label": "商业化落地",
+                    "metric": "企业级 AI 软件 ARR / 垂直行业渗透",
+                    "source": "企业财报 AI 增量收入与行业统计",
+                    "desc": "综合考察软件 SaaS 企业端 AI 转化变现与消费/产业级端到端商业化"
+                },
+                "ecosystem_vitality": {
+                    "us": 88.0,
+                    "cn": 72.0,
+                    "max": 100,
+                    "label": "研发与生态",
+                    "metric": "前沿基础模型 / 开源社区影响力",
+                    "source": "LMSYS Chatbot Arena / GitHub / HuggingFace",
+                    "desc": "评估顶尖基础大模型能力、开源模型生态繁荣度与全球开发者采纳度"
+                },
+                "supply_chain_resilience": {
+                    "us": 82.0,
+                    "cn": 76.0,
+                    "max": 100,
+                    "label": "产业链韧性",
+                    "metric": "关键环节自主可控 / 供应链集中度",
+                    "source": "产业调研与半导体产业链全景跟踪",
+                    "desc": "评估从电力能源、设备材料、EDA软件到封装制造全链条抗风险与替代能力"
+                }
             }
 
             # 11. AI 泡沫温度计 (真实 PE + CapEx 资本扩张支持)
@@ -772,11 +791,11 @@ class AIOverview:
                 "us_cn_matrix": {
                     "title": "中美 AI 产业五维对比模型评定标准",
                     "dimensions": [
-                        {"name": "算力基础", "max": 20, "desc": f"考察 GPU 储备、制程与先进封装产能，动态联动 L1/L6 芯片板块盘中动能 (美 {us_compute} vs 中 {cn_compute})"},
-                        {"name": "资本投入", "max": 20, "desc": f"基于北美四大云巨头年化 ${hyperscaler_capex['annual_run_rate_b']}B CapEx 财报底表 (宏观财报基准)"},
-                        {"name": "商业化程度", "max": 20, "desc": f"综合考察企业级 AI Agent 渗透与 ARR 转化，动态联动 L5 SaaS 动能 (美 {us_commercial} vs 中 {cn_commercial})"},
-                        {"name": "估值安全性", "max": 30, "desc": f"基于真实市盈率 (美股 AI 组合 PE {us_ai_pe}x vs 国内 AI 组合 PE {cn_ai_pe}x) 与历史中枢偏离度实时计算"},
-                        {"name": "产业链完整度", "max": 10, "desc": "综合评估从电力、晶圆制造、光刻设备到应用的全栈自给率 (结构性宏观基准)"}
+                        {"name": "算力供给", "max": 100, "desc": "考察先进算力集群可用性、高端 GPU 储备与数据中心电力供给 (美 90 vs 中 55)"},
+                        {"name": "资本投入", "max": 100, "desc": f"基于北美云巨头年化 ${hyperscaler_capex['annual_run_rate_b']}B CapEx 与国内头部科技公司财报开支 (美 92 vs 中 68)"},
+                        {"name": "商业化落地", "max": 100, "desc": "企业级 AI 软件 ARR 转化、Cloud AI 业务增速及垂直场景落地 (美 82 vs 中 62)"},
+                        {"name": "研发与生态", "max": 100, "desc": "基础大模型能力 (Arena/LMSYS基准)、开源生态繁荣度与全球开发者采纳度 (美 88 vs 中 72)"},
+                        {"name": "产业链韧性", "max": 100, "desc": "考察芯片设计/制造/封装、关键设备材料与关键环节自主可控韧性 (美 82 vs 中 76)"}
                     ]
                 },
                 "bubble_meter": {

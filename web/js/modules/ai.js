@@ -283,7 +283,7 @@ class AIMarketController {
                     <div class="card-header" style="margin-bottom: 4px;">
                         <div class="card-title" style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                             <span><i data-lucide="git-compare" width="16" style="vertical-align: middle;"></i> 中美 AI 产业五维对比</span>
-                            <span style="font-size: 10px; font-weight: normal; color: var(--text-tertiary); background: rgba(0,0,0,0.04); padding: 1px 5px; border-radius: 4px;">动态动能+财报基准</span>
+                            <span style="font-size: 10px; font-weight: normal; color: var(--text-tertiary); background: rgba(0,0,0,0.04); padding: 1px 5px; border-radius: 4px;">宏观产业基准 · 100分制</span>
                         </div>
                         <button class="info-btn" id="info-ai-matrix" title="模型说明"><i data-lucide="help-circle" width="14"></i></button>
                     </div>
@@ -742,7 +742,7 @@ class AIMarketController {
                 const bodyHtml = `
                     <div class="ai-info-modal" style="white-space: normal; font-size: 12px; color: var(--text-primary);">
                         <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">
-                            从 5 大核心维度综合量化评估中美 AI 产业竞争力（融合实时动能、动态估值与财报基准）：
+                            从 5 大核心维度综合量化评估中美 AI 产业竞争力（统一 0-100 分制，剥离短期股价扰动与估值，聚焦产业实体能力）：
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 6px;">
                             ${dimsHtml}

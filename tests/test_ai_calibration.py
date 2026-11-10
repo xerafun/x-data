@@ -146,6 +146,31 @@ class TestAICalibration(unittest.TestCase):
             self.assertIn(era_sub, matched_era)
             self.assertIn(insight_sub, historical_insight)
 
+    def test_us_cn_comparison_structure(self):
+        """Verify the 5-dimension pure industry model structure and 100-point scale"""
+        expected_dims = [
+            "compute_capacity",
+            "capex_intensity",
+            "commercial_adoption",
+            "ecosystem_vitality",
+            "supply_chain_resilience"
+        ]
+        res = AIOverview.get_overview()
+        self.assertIn("data", res)
+        comparison = res["data"].get("us_cn_comparison", {})
+        self.assertEqual(list(comparison.keys()), expected_dims)
+        self.assertNotIn("valuation_safety", comparison)
+
+        for dim_name in expected_dims:
+            item = comparison[dim_name]
+            self.assertEqual(item["max"], 100)
+            self.assertGreaterEqual(item["us"], 0)
+            self.assertLessEqual(item["us"], 100)
+            self.assertGreaterEqual(item["cn"], 0)
+            self.assertLessEqual(item["cn"], 100)
+            self.assertTrue(item.get("label"))
+            self.assertTrue(item.get("metric"))
+
 
 if __name__ == "__main__":
     unittest.main()
