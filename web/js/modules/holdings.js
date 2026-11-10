@@ -130,7 +130,7 @@ class HoldingsController {
 
         let html = '';
 
-        // 1. 顶流共识榜单 (Whale Consensus)
+        // 1. 顶流共识榜单 (Whale Consensus) - 极简结构
         html += `
             <div class="card" style="margin-bottom: 20px; padding: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
@@ -142,39 +142,37 @@ class HoldingsController {
                             <span style="font-size: 15px; font-weight: 700; color: var(--text-primary);">顶级机构重仓共识 (Whale Consensus)</span>
                         </div>
                         <div style="font-size: 12px; color: var(--text-secondary); margin-top: 3px;">
-                            追踪被 2 家及以上顶流舵手共同重仓持有的核心资产，揭示聪明钱的共识底牌
+                            追踪被 2 家及以上顶流舵手共同重仓持有的核心资产
                         </div>
                     </div>
-                    <span style="font-size: 11px; color: var(--text-secondary);">行情联动: ${market_time || '盘中实时'}</span>
+                    <span style="font-size: 11px; color: var(--text-secondary);"><i data-lucide="shield-check" width="13" style="vertical-align: -2px; margin-right: 2px;"></i>基于最新 13F 法定申报</span>
                 </div>
 
-                <div class="consensus-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+                <div class="consensus-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
                     ${consensus.map(c => `
                         <div style="background: var(--bg-subtle); border: 1px solid var(--border-light); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.15s, box-shadow 0.15s;">
                             <div>
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                                     <div>
                                         <div style="display: flex; align-items: center; gap: 6px;">
                                             <span style="font-size: 15px; font-weight: 700; color: var(--text-primary); font-family: var(--font-mono);">${c.symbol}</span>
-                                            <span style="font-size: 12px; font-weight: 600; color: var(--text-primary);">${c.name}</span>
+                                            <span style="font-size: 13px; font-weight: 600; color: var(--text-primary);">${c.name}</span>
                                         </div>
-                                        <span style="font-size: 10px; color: var(--text-secondary); background: rgba(0,0,0,0.04); padding: 1px 4px; border-radius: 3px;">${c.sector}</span>
+                                        <span style="font-size: 10px; color: var(--text-secondary); background: rgba(0,0,0,0.04); padding: 1px 4px; border-radius: 3px; margin-top: 2px; display: inline-block;">${c.sector}</span>
                                     </div>
                                     <div style="text-align: right;">
-                                        <div style="font-size: 14px; font-weight: 700; font-family: var(--font-mono);">${c.price ? '$' + c.price : '--'}</div>
-                                        <div style="font-size: 11px; font-weight: 600; font-family: var(--font-mono);">${this.formatChange(c.change_pct)}</div>
+                                        <span style="font-size: 11px; font-weight: 700; color: #3b82f6; background: rgba(59, 130, 246, 0.08); padding: 2px 7px; border-radius: 4px; border: 1px solid rgba(59, 130, 246, 0.2); display: inline-flex; align-items: center; gap: 3px;">
+                                            <i data-lucide="users" width="11"></i> ${c.holders_count} 家重仓
+                                        </span>
+                                        <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary); font-family: var(--font-mono); margin-top: 4px;">合计 ${this.formatMoney(c.total_value)}</div>
                                     </div>
                                 </div>
                                 <div style="margin-top: 8px; border-top: 1px dashed var(--border-light); padding-top: 8px;">
-                                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; display: flex; justify-content: space-between;">
-                                        <span>共识舵手 (${c.holders_count}家):</span>
-                                        <span style="font-weight: 600;">合计持有 ${this.formatMoney(c.total_value)}</span>
-                                    </div>
                                     <div style="display: flex; flex-wrap: wrap; gap: 4px;">
                                         ${c.holders.map(h => `
                                             <span style="font-size: 10px; display: inline-flex; align-items: center; gap: 3px; background: var(--bg-card); border: 1px solid var(--border-light); padding: 2px 6px; border-radius: 4px; color: var(--text-primary);">
                                                 <i data-lucide="${h.avatar_icon || 'user'}" width="10" style="color: #3b82f6;"></i>
-                                                <b>${h.manager_name}</b> (${h.weight}%)
+                                                <b>${h.manager_name}</b> <span style="color: var(--text-secondary);">(${h.weight}%)</span>
                                             </span>
                                         `).join('')}
                                     </div>
@@ -272,18 +270,12 @@ class HoldingsController {
                         </div>
                     </div>
 
-                    <!-- 4 维关键指标卡片 -->
+                    <!-- 4 维关键指标卡片 (纯正 13F 法定申报指标) -->
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; min-width: 240px;">
                         <div style="background: var(--bg-subtle); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-light);">
                             <div style="font-size: 10px; color: var(--text-secondary);">13F 申报总市值</div>
                             <div style="font-size: 15px; font-weight: 800; font-family: var(--font-mono); color: var(--text-primary); margin-top: 2px;">
                                 ${this.formatMoney(currentManager.total_value)}
-                            </div>
-                        </div>
-                        <div style="background: var(--bg-subtle); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-light);">
-                            <div style="font-size: 10px; color: var(--text-secondary);">盘中实时预估市值</div>
-                            <div style="font-size: 15px; font-weight: 800; font-family: var(--font-mono); color: #3b82f6; margin-top: 2px;">
-                                ${this.formatMoney(currentManager.realtime_total_value || currentManager.total_value)}
                             </div>
                         </div>
                         <div style="background: var(--bg-subtle); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-light);">
@@ -293,9 +285,15 @@ class HoldingsController {
                             </div>
                         </div>
                         <div style="background: var(--bg-subtle); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-light);">
-                            <div style="font-size: 10px; color: var(--text-secondary);">持股数 / 报告日期</div>
+                            <div style="font-size: 10px; color: var(--text-secondary);">持仓标的总数</div>
+                            <div style="font-size: 15px; font-weight: 800; font-family: var(--font-mono); color: var(--text-primary); margin-top: 2px;">
+                                ${currentManager.holding_count} 只
+                            </div>
+                        </div>
+                        <div style="background: var(--bg-subtle); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-light);">
+                            <div style="font-size: 10px; color: var(--text-secondary);">法定报告基准日</div>
                             <div style="font-size: 13px; font-weight: 700; font-family: var(--font-mono); color: var(--text-primary); margin-top: 2px;">
-                                ${currentManager.holding_count} 只 · ${currentManager.filing_date}
+                                ${currentManager.filing_date}
                             </div>
                         </div>
                     </div>
@@ -303,7 +301,7 @@ class HoldingsController {
             </div>
         `;
 
-        // 2. 持仓明细全景表格
+        // 2. 持仓明细全景表格 (极简 5 列：排名、标的、市值、权重、调仓)
         html += `
             <div class="card" style="padding: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
@@ -312,7 +310,7 @@ class HoldingsController {
                         <span>${currentManager.name} · 持仓全景明细 (${currentHoldings.length} 标的)</span>
                     </div>
                     <div style="font-size: 11px; color: var(--text-secondary);">
-                        注：基于 SEC 13F-HR 法定披露，现价与涨跌由极速行情通道盘中即时联动
+                        注：基于最新季度 SEC 13F-HR 法定披露数据
                     </div>
                 </div>
 
@@ -322,12 +320,9 @@ class HoldingsController {
                             <tr>
                                 <th style="width: 44px; text-align: center;">#</th>
                                 <th style="text-align: left;">标的资产</th>
-                                <th style="text-align: right;">报告期持仓市值</th>
-                                <th style="text-align: left; min-width: 160px;">组合权重占比</th>
-                                <th style="text-align: center;">调仓变动</th>
-                                <th style="text-align: right;">实时现价</th>
-                                <th style="text-align: right;">今日涨跌</th>
-                                <th style="text-align: right;">市盈率 PE</th>
+                                <th style="text-align: right; width: 150px;">报告期持仓市值</th>
+                                <th style="text-align: left; min-width: 180px;">组合权重占比</th>
+                                <th style="text-align: center; width: 140px;">调仓变动</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -355,9 +350,6 @@ class HoldingsController {
                                     <td style="text-align: center;">
                                         ${this.renderActionBadge(h.action, h.action_label)}
                                     </td>
-                                    <td style="text-align: right; font-weight: 700; font-family: var(--font-mono);">${h.price ? '$' + h.price : '--'}</td>
-                                    <td style="text-align: right; font-weight: 700; font-family: var(--font-mono);">${this.formatChange(h.change_pct)}</td>
-                                    <td style="text-align: right; font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono);">${h.pe && h.pe > 0 ? h.pe + 'x' : '--'}</td>
                                 </tr>
                             `).join('')}
                         </tbody>

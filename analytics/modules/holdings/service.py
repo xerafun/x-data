@@ -9,7 +9,6 @@ from ...core.cache import cached
 from ...core.config import settings
 from ...core.logger import logger
 from ...core.utils import get_beijing_time
-from ...core.us_spot_helper import get_us_spot_direct
 from .config import TRACKED_MANAGERS
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
@@ -33,34 +32,27 @@ class HoldingsService:
 
     @staticmethod
     @cached(
-        "holdings:overview_v4",
-        ttl=settings.CACHE_TTL.get("market_us", 60),
-        stale_ttl=settings.CACHE_TTL.get("market_us", 60) * settings.STALE_TTL_RATIO,
+        "holdings:overview_v5",
+        ttl=settings.CACHE_TTL.get("market_us", 3600),
+        stale_ttl=settings.CACHE_TTL.get("market_us", 3600) * settings.STALE_TTL_RATIO,
         sync_on_cold=True
     )
     def get_overview() -> Dict[str, Any]:
         """
-        获取全量投资人概况看板与顶流共识榜单（包含全量持仓与盘中实时行情）
+        获取全量投资人概况看板与顶流共识榜单（聚焦纯正 13F 法定持仓与共识）
         """
         managers_list = []
-        raw_snapshots = {}
-        all_symbols = set()
         consensus_map: Dict[str, Dict[str, Any]] = {}
 
         for m_id, meta in TRACKED_MANAGERS.items():
             data = HoldingsService._load_manager_snapshot(m_id)
             if not data:
                 continue
-            raw_snapshots[m_id] = data
 
-            # 收集该投资人全部持仓的代码用于一次性批量获取实时极速行情
-            for h in data.get("holdings", []):
-                sym = h.get("symbol")
-                if sym:
-                    all_symbols.add(sym)
+            holdings = data.get("holdings", [])
 
             # 统计前 15 大持仓用于共识挖掘
-            for h in data.get("holdings", [])[:15]:
+            for h in holdings[:15]:
                 sym = h.get("symbol")
                 if not sym or sym in ("SPY", "IVV", "VOO"):  # 剔除宽基指数ETF，聚焦个股共识
                     continue
@@ -82,49 +74,6 @@ class HoldingsService:
                 })
                 consensus_map[sym]["total_value"] += h.get("value", 0)
 
-        # 一次性批量获取全部持仓标的的实时极速行情
-        live_quotes = get_us_spot_direct(list(all_symbols)) if all_symbols else {}
-
-        # 为各投资人组装带实时行情的完整持仓
-        for m_id, meta in TRACKED_MANAGERS.items():
-            data = raw_snapshots.get(m_id)
-            if not data:
-                continue
-
-            holdings = data.get("holdings", [])
-            realtime_total_value = 0
-            has_realtime = False
-
-            for h in holdings:
-                sym = h.get("symbol")
-                if sym and sym in live_quotes:
-                    q = live_quotes[sym]
-                    h["price"] = q.get("price")
-                    h["change_pct"] = q.get("change_pct")
-                    h["pe"] = q.get("pe")
-                    h["market_cap"] = q.get("market_cap")
-                    if q.get("price") and h.get("shares"):
-                        cur_val = q["price"] * h["shares"]
-                        h["live_value"] = round(cur_val, 2)
-                        realtime_total_value += cur_val
-                        has_realtime = True
-                else:
-                    h["price"] = None
-                    h["change_pct"] = None
-                    h["pe"] = None
-                    h["live_value"] = h.get("value")
-
-            top3 = []
-            for h in holdings[:3]:
-                top3.append({
-                    "symbol": h.get("symbol"),
-                    "name": h.get("name"),
-                    "weight": h.get("weight", 0),
-                    "sector": h.get("sector"),
-                    "price": h.get("price"),
-                    "change_pct": h.get("change_pct")
-                })
-
             managers_list.append({
                 "id": m_id,
                 "name": meta["name"],
@@ -139,10 +88,9 @@ class HoldingsService:
                 "filing_form": data.get("filing_form"),
                 "accession": data.get("accession"),
                 "total_value": data.get("total_value", 0),
-                "realtime_total_value": round(realtime_total_value, 2) if has_realtime else data.get("total_value", 0),
                 "holding_count": data.get("holding_count", 0),
                 "cr10": data.get("cr10", 0),
-                "top3_holdings": top3,
+                "top3_holdings": holdings[:3],
                 "holdings": holdings
             })
 
@@ -150,7 +98,6 @@ class HoldingsService:
         consensus_list = []
         for sym, c in consensus_map.items():
             if len(c["holders"]) >= 2:
-                q = live_quotes.get(sym, {})
                 consensus_list.append({
                     "symbol": sym,
                     "name": c["name"],
@@ -158,9 +105,6 @@ class HoldingsService:
                     "holders_count": len(c["holders"]),
                     "holders": c["holders"],
                     "total_value": c["total_value"],
-                    "price": q.get("price"),
-                    "change_pct": q.get("change_pct"),
-                    "pe": q.get("pe")
                 })
 
         # 共识排序：持有机构数降序 -> 合计市值降序
