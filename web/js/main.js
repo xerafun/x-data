@@ -147,7 +147,7 @@ class App {
         // 监听浏览器前进/后退
         window.addEventListener('popstate', () => {
             const urlTab = utils.getUrlParam('tab') || 'global';
-            const validTabs = ['global', 'chart', 'ai', 'gold', 'qdii'];
+            const validTabs = ['global', 'chart', 'ai', 'gold', 'qdii', 'holdings'];
             const targetTab = validTabs.includes(urlTab) ? urlTab : 'global';
             if (this.currentTab !== targetTab) {
                 this.switchTab(targetTab, false);
@@ -198,6 +198,13 @@ class App {
             } else {
                 url.searchParams.delete('filter');
                 url.searchParams.delete('subtab');
+            }
+        }
+        if (tabId !== 'holdings') {
+            url.searchParams.delete('manager');
+        } else {
+            if (window.holdingsController && window.holdingsController.currentManagerId) {
+                url.searchParams.set('manager', window.holdingsController.currentManagerId);
             }
         }
         url.searchParams.delete('index');
@@ -310,7 +317,7 @@ class App {
             'index-valuation': 'chart',
             'charts': 'chart'
         };
-        const validTabs = ['global', 'chart', 'ai', 'gold', 'qdii'];
+        const validTabs = ['global', 'chart', 'ai', 'gold', 'qdii', 'holdings'];
         const targetTab = legacyMap[urlTab] || urlTab;
 
         if (targetTab && validTabs.includes(targetTab)) {

@@ -33,16 +33,17 @@ class HoldingsService:
 
     @staticmethod
     @cached(
-        "holdings:overview_v2",
+        "holdings:overview_v3",
         ttl=settings.CACHE_TTL.get("market_us", 60),
         stale_ttl=settings.CACHE_TTL.get("market_us", 60) * settings.STALE_TTL_RATIO,
         sync_on_cold=True
     )
     def get_overview() -> Dict[str, Any]:
         """
-        获取全量投资人概况看板与顶流共识榜单
+        获取全量投资人概况看板与顶流共识榜单（包含全量持仓与盘中实时行情）
         """
         managers_list = []
+        raw_snapshots = {}
         all_symbols = set()
         consensus_map: Dict[str, Dict[str, Any]] = {}
 
@@ -50,26 +51,19 @@ class HoldingsService:
             data = HoldingsService._load_manager_snapshot(m_id)
             if not data:
                 continue
+            raw_snapshots[m_id] = data
 
-            # 提取前 3 大持仓作为卡片简要预览
-            top3 = []
-            for h in data.get("holdings", [])[:3]:
+            # 收集该投资人全部持仓的代码用于一次性批量获取实时极速行情
+            for h in data.get("holdings", []):
                 sym = h.get("symbol")
                 if sym:
                     all_symbols.add(sym)
-                top3.append({
-                    "symbol": sym,
-                    "name": h.get("name"),
-                    "weight": h.get("weight", 0),
-                    "sector": h.get("sector")
-                })
 
-            # 统计全部前 10 大持仓用于共识挖掘
+            # 统计前 15 大持仓用于共识挖掘
             for h in data.get("holdings", [])[:15]:
                 sym = h.get("symbol")
                 if not sym or sym in ("SPY", "IVV", "VOO"):  # 剔除宽基指数ETF，聚焦个股共识
                     continue
-                all_symbols.add(sym)
                 if sym not in consensus_map:
                     consensus_map[sym] = {
                         "symbol": sym,
@@ -88,6 +82,49 @@ class HoldingsService:
                 })
                 consensus_map[sym]["total_value"] += h.get("value", 0)
 
+        # 一次性批量获取全部持仓标的的实时极速行情
+        live_quotes = get_us_spot_direct(list(all_symbols)) if all_symbols else {}
+
+        # 为各投资人组装带实时行情的完整持仓
+        for m_id, meta in TRACKED_MANAGERS.items():
+            data = raw_snapshots.get(m_id)
+            if not data:
+                continue
+
+            holdings = data.get("holdings", [])
+            realtime_total_value = 0
+            has_realtime = False
+
+            for h in holdings:
+                sym = h.get("symbol")
+                if sym and sym in live_quotes:
+                    q = live_quotes[sym]
+                    h["price"] = q.get("price")
+                    h["change_pct"] = q.get("change_pct")
+                    h["pe"] = q.get("pe")
+                    h["market_cap"] = q.get("market_cap")
+                    if q.get("price") and h.get("shares"):
+                        cur_val = q["price"] * h["shares"]
+                        h["live_value"] = round(cur_val, 2)
+                        realtime_total_value += cur_val
+                        has_realtime = True
+                else:
+                    h["price"] = None
+                    h["change_pct"] = None
+                    h["pe"] = None
+                    h["live_value"] = h.get("value")
+
+            top3 = []
+            for h in holdings[:3]:
+                top3.append({
+                    "symbol": h.get("symbol"),
+                    "name": h.get("name"),
+                    "weight": h.get("weight", 0),
+                    "sector": h.get("sector"),
+                    "price": h.get("price"),
+                    "change_pct": h.get("change_pct")
+                })
+
             managers_list.append({
                 "id": m_id,
                 "name": meta["name"],
@@ -99,23 +136,15 @@ class HoldingsService:
                 "avatar_icon": meta["avatar_icon"],
                 "description": meta["description"],
                 "filing_date": data.get("filing_date"),
+                "filing_form": data.get("filing_form"),
+                "accession": data.get("accession"),
                 "total_value": data.get("total_value", 0),
+                "realtime_total_value": round(realtime_total_value, 2) if has_realtime else data.get("total_value", 0),
                 "holding_count": data.get("holding_count", 0),
                 "cr10": data.get("cr10", 0),
-                "top3_holdings": top3
+                "top3_holdings": top3,
+                "holdings": holdings
             })
-
-        # 批量获取实时极速行情
-        live_quotes = get_us_spot_direct(list(all_symbols)) if all_symbols else {}
-
-        # 丰富前 3 大预览的实时行情
-        for m in managers_list:
-            for item in m.get("top3_holdings", []):
-                sym = item.get("symbol")
-                if sym and sym in live_quotes:
-                    q = live_quotes[sym]
-                    item["price"] = q.get("price")
-                    item["change_pct"] = q.get("change_pct")
 
         # 筛选被 2 家及以上机构共同重仓的标的作为顶流共识
         consensus_list = []
@@ -146,61 +175,26 @@ class HoldingsService:
     @staticmethod
     def get_manager_detail(manager_id: str) -> Optional[Dict[str, Any]]:
         """
-        获取指定投资人的完整持仓明细（带盘中实时行情与估值）
+        获取指定投资人的完整持仓明细（优先从 overview 内存极速复用）
         """
-        data = HoldingsService._load_manager_snapshot(manager_id)
-        if not data:
-            return None
+        overview = HoldingsService.get_overview()
+        data = overview.get("data", {}) if isinstance(overview, dict) and "data" in overview else overview
+        managers = data.get("managers", [])
+        target = next((m for m in managers if m.get("id") == manager_id), None)
+        
+        if not target:
+            # Fallback 从快照读取
+            raw = HoldingsService._load_manager_snapshot(manager_id)
+            if not raw:
+                return None
+            target = raw
 
-        holdings = data.get("holdings", [])
-        symbols = [h["symbol"] for h in holdings if h.get("symbol")]
-        live_quotes = get_us_spot_direct(symbols) if symbols else {}
-
-        realtime_total_value = 0
-        has_realtime = False
-
-        for h in holdings:
-            sym = h.get("symbol")
-            if sym and sym in live_quotes:
-                q = live_quotes[sym]
-                h["price"] = q.get("price")
-                h["change_pct"] = q.get("change_pct")
-                h["pe"] = q.get("pe")
-                h["market_cap"] = q.get("market_cap")
-                if q.get("price") and h.get("shares"):
-                    # 动态估算实时市值
-                    cur_val = q["price"] * h["shares"]
-                    h["live_value"] = round(cur_val, 2)
-                    realtime_total_value += cur_val
-                    has_realtime = True
-            else:
-                h["price"] = None
-                h["change_pct"] = None
-                h["pe"] = None
-                h["live_value"] = h.get("value")
-
+        holdings = target.get("holdings", [])
         return {
             "status": "ok",
             "data": {
-                "manager": {
-                    "id": data.get("id"),
-                    "name": data.get("name"),
-                    "en_name": data.get("en_name"),
-                    "institution": data.get("institution"),
-                    "cik": data.get("cik"),
-                    "style": data.get("style"),
-                    "style_tags": data.get("style_tags"),
-                    "avatar_icon": data.get("avatar_icon"),
-                    "description": data.get("description"),
-                    "filing_date": data.get("filing_date"),
-                    "filing_form": data.get("filing_form"),
-                    "accession": data.get("accession"),
-                    "total_value": data.get("total_value", 0),
-                    "realtime_total_value": round(realtime_total_value, 2) if has_realtime else data.get("total_value", 0),
-                    "holding_count": data.get("holding_count", 0),
-                    "cr10": data.get("cr10", 0),
-                },
+                "manager": {k: v for k, v in target.items() if k != "holdings"},
                 "holdings": holdings,
-                "market_time": get_beijing_time().strftime("%Y-%m-%d %H:%M:%S")
+                "market_time": data.get("market_time", get_beijing_time().strftime("%Y-%m-%d %H:%M:%S"))
             }
         }

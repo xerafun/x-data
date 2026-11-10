@@ -1,12 +1,24 @@
-// 顶级机构与知名投资人 13F 持仓风向标模块
+// 顶级机构与知名投资人 13F 持仓风向标模块 (高性能即时响应版)
 // 依赖: utils.js, api.js, styles.css
 
 class HoldingsController {
     constructor() {
-        this.currentManagerId = 'duan'; // 默认展示段永平 (华人知名度高、持仓极度聚焦)
+        this.currentManagerId = this._resolveInitialManager();
         this.overviewData = null;
         this.managerCache = new Map();
         window.holdingsController = this;
+    }
+
+    _resolveInitialManager() {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const m = urlParams.get('manager');
+            const validManagers = ['buffett', 'duan', 'lilu', 'burry', 'dalio', 'hillhouse'];
+            if (m && validManagers.includes(m)) {
+                return m;
+            }
+        } catch (e) {}
+        return 'duan'; // 默认段永平 (华人知名度高、持仓极度聚焦)
     }
 
     async loadData() {
@@ -24,8 +36,16 @@ class HoldingsController {
             const data = (res && res.data) ? res.data : res;
             this.overviewData = data;
 
-            // 同时拉取默认选中的投资人持仓明细
-            await this.loadManagerDetail(this.currentManagerId, false);
+            // 一次性将全部投资人的完整持仓直接灌入前端内存缓存，彻底杜绝后续切换卡顿
+            if (data && data.managers) {
+                data.managers.forEach(m => {
+                    this.managerCache.set(m.id, {
+                        manager: m,
+                        holdings: m.holdings || []
+                    });
+                });
+            }
+
             this.render();
         } catch (error) {
             console.error('加载机构持仓失败:', error);
@@ -39,27 +59,42 @@ class HoldingsController {
         }
     }
 
-    async loadManagerDetail(managerId, reRender = true) {
-        if (this.managerCache.has(managerId)) {
-            this.currentManagerId = managerId;
-            if (reRender) this.render();
-            return;
-        }
-
-        try {
-            const res = await api.getManagerDetail(managerId);
-            const data = (res && res.data) ? res.data : res;
-            this.managerCache.set(managerId, data);
-            this.currentManagerId = managerId;
-            if (reRender) this.render();
-        } catch (err) {
-            console.error(`加载投资人明细失败 ${managerId}:`, err);
-        }
-    }
-
     selectManager(managerId) {
         if (this.currentManagerId === managerId) return;
-        this.loadManagerDetail(managerId, true);
+        this.currentManagerId = managerId;
+
+        // 1. 同步写入 URL query param，保证刷新后记忆当前选中的舵手
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('tab', 'holdings');
+            url.searchParams.set('manager', managerId);
+            window.history.replaceState({}, '', url.toString());
+        } catch (e) {}
+
+        // 2. 瞬时局部更新：更新卡片激活高亮边框与选中点 (0ms)
+        this.updateSelectorUI();
+
+        // 3. 瞬时局部重绘：仅更新下方画像与持仓明细表格，无多余网络请求与全页重排
+        this.renderDetail();
+    }
+
+    updateSelectorUI() {
+        const cards = document.querySelectorAll('.holdings-manager-card');
+        cards.forEach(card => {
+            const mId = card.dataset.managerId;
+            const isActive = (mId === this.currentManagerId);
+            card.style.border = `2px solid ${isActive ? '#3b82f6' : 'var(--border-light)'}`;
+            card.style.background = isActive ? 'rgba(59, 130, 246, 0.04)' : 'var(--bg-card)';
+            
+            const dot = card.querySelector('.manager-active-dot');
+            if (dot) dot.style.display = isActive ? 'block' : 'none';
+
+            const iconBox = card.querySelector('.manager-icon-box');
+            if (iconBox) {
+                iconBox.style.background = isActive ? '#3b82f6' : 'rgba(0,0,0,0.06)';
+                iconBox.style.color = isActive ? '#fff' : 'var(--text-primary)';
+            }
+        });
     }
 
     formatMoney(val) {
@@ -99,9 +134,6 @@ class HoldingsController {
         if (!container || !this.overviewData) return;
 
         const { managers = [], consensus = [], market_time } = this.overviewData;
-        const currentDetail = this.managerCache.get(this.currentManagerId);
-        const currentManager = currentDetail ? currentDetail.manager : (managers.find(m => m.id === this.currentManagerId) || managers[0]);
-        const currentHoldings = currentDetail ? currentDetail.holdings : [];
 
         let html = '';
 
@@ -171,11 +203,11 @@ class HoldingsController {
                     ${managers.map(m => {
                         const isActive = m.id === this.currentManagerId;
                         return `
-                            <div onclick="window.holdingsController.selectManager('${m.id}')"
-                                style="cursor: pointer; padding: 12px; border-radius: 8px; border: 2px solid ${isActive ? '#3b82f6' : 'var(--border-light)'}; background: ${isActive ? 'rgba(59, 130, 246, 0.04)' : 'var(--bg-card)'}; transition: all 0.2s; position: relative;">
+                            <div class="holdings-manager-card" data-manager-id="${m.id}" onclick="window.holdingsController.selectManager('${m.id}')"
+                                style="cursor: pointer; padding: 12px; border-radius: 8px; border: 2px solid ${isActive ? '#3b82f6' : 'var(--border-light)'}; background: ${isActive ? 'rgba(59, 130, 246, 0.04)' : 'var(--bg-card)'}; transition: border 0.15s, background 0.15s; position: relative;">
                                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                     <div style="display: flex; align-items: center; gap: 6px;">
-                                        <span style="width: 28px; height: 28px; border-radius: 6px; background: ${isActive ? '#3b82f6' : 'rgba(0,0,0,0.06)'}; color: ${isActive ? '#fff' : 'var(--text-primary)'}; display: flex; align-items: center; justify-content: center;">
+                                        <span class="manager-icon-box" style="width: 28px; height: 28px; border-radius: 6px; background: ${isActive ? '#3b82f6' : 'rgba(0,0,0,0.06)'}; color: ${isActive ? '#fff' : 'var(--text-primary)'}; display: flex; align-items: center; justify-content: center; transition: all 0.15s;">
                                             <i data-lucide="${m.avatar_icon || 'user'}" width="16"></i>
                                         </span>
                                         <div>
@@ -183,7 +215,7 @@ class HoldingsController {
                                             <div style="font-size: 10px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;">${m.institution.split('(')[0]}</div>
                                         </div>
                                     </div>
-                                    ${isActive ? '<span style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6;"></span>' : ''}
+                                    <span class="manager-active-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; display: ${isActive ? 'block' : 'none'};"></span>
                                 </div>
                                 <div style="margin-top: 8px; display: flex; justify-content: space-between; font-size: 11px;">
                                     <span style="color: var(--text-secondary);">披露市值</span>
@@ -200,69 +232,91 @@ class HoldingsController {
             </div>
         `;
 
-        // 3. 当前选中投资人画像 Banner
-        if (currentManager) {
-            html += `
-                <div class="card" style="margin-bottom: 20px; padding: 18px; border-left: 4px solid #3b82f6;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
-                        <div style="flex: 1; min-width: 260px;">
-                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                <h3 style="font-size: 18px; font-weight: 800; margin: 0; color: var(--text-primary);">${currentManager.name}</h3>
-                                <span style="font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono);">${currentManager.en_name || ''}</span>
-                                <span style="font-size: 11px; background: rgba(59, 130, 246, 0.1); color: #3b82f6; padding: 2px 8px; border-radius: 4px; font-weight: 600;">${currentManager.style}</span>
-                            </div>
-                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; font-weight: 500;">
-                                申报主体: <b>${currentManager.institution}</b> (SEC CIK: ${currentManager.cik})
-                            </div>
-                            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 6px; line-height: 1.5;">
-                                ${currentManager.description}
-                            </p>
-                            <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
-                                ${(currentManager.style_tags || []).map(tag => `
-                                    <span style="font-size: 10px; background: var(--bg-subtle); border: 1px solid var(--border-light); color: var(--text-secondary); padding: 2px 6px; border-radius: 3px;">#${tag}</span>
-                                `).join('')}
+        // 3. 选中投资人持仓明细的挂载容器
+        html += `<div id="holdings-detail-container"></div>`;
+
+        container.innerHTML = html;
+
+        // 渲染当前选中的舵手详情
+        this.renderDetail();
+    }
+
+    renderDetail() {
+        const detailContainer = document.getElementById('holdings-detail-container');
+        if (!detailContainer) return;
+
+        const currentEntry = this.managerCache.get(this.currentManagerId);
+        if (!currentEntry) {
+            detailContainer.innerHTML = '<div class="loading"><i data-lucide="loader-2" class="spin"></i> 加载中...</div>';
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        const { manager: currentManager, holdings: currentHoldings = [] } = currentEntry;
+
+        let html = '';
+
+        // 1. 舵手画像 Banner
+        html += `
+            <div class="card" style="margin-bottom: 20px; padding: 18px; border-left: 4px solid #3b82f6; animation: fadeIn 0.15s ease-out;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+                    <div style="flex: 1; min-width: 260px;">
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <h3 style="font-size: 18px; font-weight: 800; margin: 0; color: var(--text-primary);">${currentManager.name}</h3>
+                            <span style="font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono);">${currentManager.en_name || ''}</span>
+                            <span style="font-size: 11px; background: rgba(59, 130, 246, 0.1); color: #3b82f6; padding: 2px 8px; border-radius: 4px; font-weight: 600;">${currentManager.style}</span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; font-weight: 500;">
+                            申报主体: <b>${currentManager.institution}</b> (SEC CIK: ${currentManager.cik})
+                        </div>
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 6px; line-height: 1.5;">
+                            ${currentManager.description}
+                        </p>
+                        <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
+                            ${(currentManager.style_tags || []).map(tag => `
+                                <span style="font-size: 10px; background: var(--bg-subtle); border: 1px solid var(--border-light); color: var(--text-secondary); padding: 2px 6px; border-radius: 3px;">#${tag}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- 4 维关键指标卡片 -->
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; min-width: 240px;">
+                        <div style="background: var(--bg-subtle); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-light);">
+                            <div style="font-size: 10px; color: var(--text-secondary);">13F 申报总市值</div>
+                            <div style="font-size: 15px; font-weight: 800; font-family: var(--font-mono); color: var(--text-primary); margin-top: 2px;">
+                                ${this.formatMoney(currentManager.total_value)}
                             </div>
                         </div>
-
-                        <!-- 4 维指标小卡片 -->
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; min-width: 240px;">
-                            <div style="background: var(--bg-subtle); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-light);">
-                                <div style="font-size: 10px; color: var(--text-secondary);">13F 申报总市值</div>
-                                <div style="font-size: 15px; font-weight: 800; font-family: var(--font-mono); color: var(--text-primary); margin-top: 2px;">
-                                    ${this.formatMoney(currentManager.total_value)}
-                                </div>
+                        <div style="background: var(--bg-subtle); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-light);">
+                            <div style="font-size: 10px; color: var(--text-secondary);">盘中实时预估市值</div>
+                            <div style="font-size: 15px; font-weight: 800; font-family: var(--font-mono); color: #3b82f6; margin-top: 2px;">
+                                ${this.formatMoney(currentManager.realtime_total_value || currentManager.total_value)}
                             </div>
-                            <div style="background: var(--bg-subtle); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-light);">
-                                <div style="font-size: 10px; color: var(--text-secondary);">盘中实时预估市值</div>
-                                <div style="font-size: 15px; font-weight: 800; font-family: var(--font-mono); color: #3b82f6; margin-top: 2px;">
-                                    ${this.formatMoney(currentManager.realtime_total_value || currentManager.total_value)}
-                                </div>
+                        </div>
+                        <div style="background: var(--bg-subtle); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-light);">
+                            <div style="font-size: 10px; color: var(--text-secondary);">前十大持仓集中度</div>
+                            <div style="font-size: 15px; font-weight: 800; font-family: var(--font-mono); color: ${currentManager.cr10 >= 80 ? '#ef4444' : '#16a34a'}; margin-top: 2px;">
+                                ${currentManager.cr10}%
                             </div>
-                            <div style="background: var(--bg-subtle); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-light);">
-                                <div style="font-size: 10px; color: var(--text-secondary);">前十大持仓集中度</div>
-                                <div style="font-size: 15px; font-weight: 800; font-family: var(--font-mono); color: ${currentManager.cr10 >= 80 ? '#ef4444' : '#16a34a'}; margin-top: 2px;">
-                                    ${currentManager.cr10}%
-                                </div>
-                            </div>
-                            <div style="background: var(--bg-subtle); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-light);">
-                                <div style="font-size: 10px; color: var(--text-secondary);">持股数 / 报告日期</div>
-                                <div style="font-size: 13px; font-weight: 700; font-family: var(--font-mono); color: var(--text-primary); margin-top: 2px;">
-                                    ${currentManager.holding_count} 只 · ${currentManager.filing_date}
-                                </div>
+                        </div>
+                        <div style="background: var(--bg-subtle); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-light);">
+                            <div style="font-size: 10px; color: var(--text-secondary);">持股数 / 报告日期</div>
+                            <div style="font-size: 13px; font-weight: 700; font-family: var(--font-mono); color: var(--text-primary); margin-top: 2px;">
+                                ${currentManager.holding_count} 只 · ${currentManager.filing_date}
                             </div>
                         </div>
                     </div>
                 </div>
-            `;
-        }
+            </div>
+        `;
 
-        // 4. 持仓明细全景表格 (Portfolio Table)
+        // 2. 持仓明细全景表格
         html += `
             <div class="card" style="padding: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
                     <div style="font-size: 14px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
                         <i data-lucide="layers" width="16" style="color: #3b82f6;"></i>
-                        <span>${currentManager ? currentManager.name : ''} · 持仓全景明细 (${currentHoldings.length} 标的)</span>
+                        <span>${currentManager.name} · 持仓全景明细 (${currentHoldings.length} 标的)</span>
                     </div>
                     <div style="font-size: 11px; color: var(--text-secondary);">
                         注：基于 SEC 13F-HR 法定披露，现价与涨跌由极速行情通道盘中即时联动
@@ -319,7 +373,7 @@ class HoldingsController {
             </div>
         `;
 
-        container.innerHTML = html;
+        detailContainer.innerHTML = html;
         if (window.lucide) {
             lucide.createIcons();
         }
