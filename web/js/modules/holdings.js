@@ -10,15 +10,7 @@ class HoldingsController {
     }
 
     _resolveInitialManager() {
-        try {
-            const urlParams = new URLSearchParams(window.location.search);
-            const m = urlParams.get('manager');
-            const validManagers = ['buffett', 'duan', 'lilu', 'burry', 'dalio', 'hillhouse'];
-            if (m && validManagers.includes(m)) {
-                return m;
-            }
-        } catch (e) {}
-        return 'duan'; // 默认段永平 (华人知名度高、持仓极度聚焦)
+        return 'buffett'; // 纯内存默认选中第1位（巴菲特），不读取也不持久化
     }
 
     async loadData() {
@@ -63,22 +55,19 @@ class HoldingsController {
         if (this.currentManagerId === managerId) return;
         this.currentManagerId = managerId;
 
-        // 1. 同步更新 URL query param (默认段永平时保持干净 URL，切换非默认时记录)
+        // 纯内存切换：确保 URL 干净，不拼接 manager 参数，不持久化存储
         try {
             const url = new URL(window.location.href);
-            url.searchParams.set('tab', 'holdings');
-            if (managerId && managerId !== 'duan') {
-                url.searchParams.set('manager', managerId);
-            } else {
+            if (url.searchParams.has('manager')) {
                 url.searchParams.delete('manager');
+                window.history.replaceState({}, '', url.toString());
             }
-            window.history.replaceState({}, '', url.toString());
         } catch (e) {}
 
-        // 2. 瞬时局部更新：更新卡片激活高亮边框与选中点 (0ms)
+        // 瞬时局部更新：更新卡片激活高亮边框与选中点 (0ms)
         this.updateSelectorUI();
 
-        // 3. 瞬时局部重绘：仅更新下方画像与持仓明细表格，无多余网络请求与全页重排
+        // 瞬时局部重绘：仅更新下方画像与持仓明细表格，无多余网络请求与全页重排
         this.renderDetail();
     }
 
