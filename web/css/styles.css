@@ -4663,3 +4663,69 @@ footer a:hover {
     touch-action: pan-y;
 }
 
+/* Holdings 顶级机构持仓模块极简与移动端适配 */
+.holdings-pills-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 2px 2px 8px 2px;
+    margin-bottom: 12px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.holdings-pills-bar::-webkit-scrollbar {
+    display: none;
+}
+.holdings-pill {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+.holdings-pill:hover {
+    border-color: #3b82f6;
+}
+.holdings-pill.active {
+    background: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+.holdings-pill.active .pill-sub {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+.pill-sub {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: normal;
+}
+@media (max-width: 640px) {
+    .holdings-meta-box {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+    }
+    .holdings-meta-stats {
+        width: 100% !important;
+        justify-content: space-between !important;
+    }
+    .holdings-table th, .holdings-table td {
+        padding: 8px 6px !important;
+        font-size: 12px !important;
+    }
+    .holdings-weight-bar {
+        display: none !important;
+    }
+}
+
+
