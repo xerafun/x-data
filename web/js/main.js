@@ -3,7 +3,7 @@
 
 class App {
     constructor() {
-        this.currentTab = 'global';
+        this.currentTab = 'holdings';
         this.lastUpdateTime = null;
         this.loadingTabs = new Set();
         this.loadedTabs = new Set();
@@ -89,27 +89,27 @@ class App {
                         break;
                     case '1':
                         event.preventDefault();
-                        this.switchTab('global');
+                        this.switchTab('holdings');
                         break;
                     case '2':
                         event.preventDefault();
-                        this.switchTab('chart');
+                        this.switchTab('global');
                         break;
                     case '3':
                         event.preventDefault();
-                        this.switchTab('ai');
+                        this.switchTab('chart');
                         break;
                     case '4':
                         event.preventDefault();
-                        this.switchTab('gold');
+                        this.switchTab('ai');
                         break;
                     case '5':
                         event.preventDefault();
-                        this.switchTab('qdii');
+                        this.switchTab('gold');
                         break;
                     case '6':
                         event.preventDefault();
-                        this.switchTab('holdings');
+                        this.switchTab('qdii');
                         break;
                 }
             }
@@ -139,16 +139,16 @@ class App {
                     return;
                 }
                 event.preventDefault();
-                this.switchTab('global');
+                this.switchTab('holdings');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
         }
 
         // 监听浏览器前进/后退
         window.addEventListener('popstate', () => {
-            const urlTab = utils.getUrlParam('tab') || 'global';
-            const validTabs = ['global', 'chart', 'ai', 'gold', 'qdii', 'holdings'];
-            const targetTab = validTabs.includes(urlTab) ? urlTab : 'global';
+            const urlTab = utils.getUrlParam('tab') || 'holdings';
+            const validTabs = ['holdings', 'global', 'chart', 'ai', 'gold', 'qdii'];
+            const targetTab = validTabs.includes(urlTab) ? urlTab : 'holdings';
             if (this.currentTab !== targetTab) {
                 this.switchTab(targetTab, false);
             }
@@ -172,7 +172,7 @@ class App {
 
         // 更新URL并清除其他非当前 Tab 的子级参数（如 filter, subtab 等）
         const url = new URL(window.location.href);
-        if (tabId === 'global') {
+        if (tabId === 'holdings') {
             url.searchParams.delete('tab');
         } else {
             url.searchParams.set('tab', tabId);
@@ -311,13 +311,13 @@ class App {
             'index-valuation': 'chart',
             'charts': 'chart'
         };
-        const validTabs = ['global', 'chart', 'ai', 'gold', 'qdii', 'holdings'];
+        const validTabs = ['holdings', 'global', 'chart', 'ai', 'gold', 'qdii'];
         const targetTab = legacyMap[urlTab] || urlTab;
 
         if (targetTab && validTabs.includes(targetTab)) {
             this.switchTab(targetTab, false);
         } else {
-            await this.loadTab('global', false);
+            await this.loadTab('holdings', false);
         }
     }
 

@@ -44,7 +44,10 @@
     <main class="main-container">
         <!-- Tabs -->
         <nav class="tabs">
-            <button class="tab-btn active" data-tab="global">
+            <button class="tab-btn active" data-tab="holdings">
+                Holdings
+            </button>
+            <button class="tab-btn" data-tab="global">
                 Global
             </button>
             <button class="tab-btn" data-tab="chart">
@@ -59,13 +62,26 @@
             <button class="tab-btn" data-tab="qdii">
                 QDII
             </button>
-            <button class="tab-btn" data-tab="holdings">
-                Holdings
-            </button>
         </nav>
 
+        <!-- 顶级机构持仓 (13F Whale Holdings) -->
+        <section class="tab-content active" id="holdings">
+            <div class="section-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <h2 class="section-title" style="margin: 0; white-space: nowrap;">Holdings</h2>
+                    <span style="font-size: 11px; color: var(--text-secondary); background: var(--bg-subtle); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border-light);">美股 13F 顶级舵手收益榜</span>
+                </div>
+                <button class="refresh-btn" onclick="window.app.refreshCurrentTab(true)" title="点击刷新"><i data-lucide="refresh-cw" width="14"></i> 刷新</button>
+            </div>
+
+            <!-- 持仓模块主容器 -->
+            <div id="holdings-container">
+                <div class="loading"><i data-lucide="loader-2" class="spin"></i> 数据加载中...</div>
+            </div>
+        </section>
+
         <!-- Global Market -->
-        <section class="tab-content active" id="global">
+        <section class="tab-content" id="global">
             <div class="section-header">
                 <h2 class="section-title">Global</h2>
                 <button class="refresh-btn" onclick="window.app.refreshCurrentTab(true)" title="点击刷新"><i
@@ -405,24 +421,6 @@
             </div>
         </section>
 
-        <!-- 顶级机构持仓 (13F Whale Holdings) -->
-        <section class="tab-content" id="holdings">
-            <div class="section-header">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <h2 class="section-title" style="margin: 0; white-space: nowrap;">Holdings</h2>
-                    <span style="font-size: 11px; color: var(--text-secondary); background: var(--bg-subtle); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border-light);">美股 13F 顶级舵手收益榜</span>
-                </div>
-                <button class="refresh-btn" onclick="window.app.refreshCurrentTab(true)" title="点击刷新"><i data-lucide="refresh-cw" width="14"></i> 刷新</button>
-            </div>
-
-            <!-- 持仓模块主容器 -->
-            <div id="holdings-container">
-                <div class="loading"><i data-lucide="loader-2" class="spin"></i> 数据加载中...</div>
-            </div>
-        </section>
-
-
-
     </main>
 
     <footer>
@@ -453,7 +451,7 @@
     <script src="js/modules/gold.js?v=48"></script>
     <script src="js/modules/qdii.js?v=83"></script>
     <script src="js/modules/holdings.js?v=20"></script>
-    <script src="js/main.js?v=42"></script>
+    <script src="js/main.js?v=43"></script>
     <script>lucide.createIcons();</script>
 </body>
 
