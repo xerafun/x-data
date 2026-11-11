@@ -56,7 +56,7 @@ INDEX_CONFIGS = [
         "region": "CN",
         "flag": "",
         "color": "#DE2910",  # A股-中国红 (QDII tag-cn 红)
-        "default_selected": True,
+        "default_selected": False,
         "type": "cn",
         "symbol": "sh000300",
     },
@@ -67,7 +67,7 @@ INDEX_CONFIGS = [
         "region": "CN",
         "flag": "",
         "color": "#EF4444",  # A股-朱红
-        "default_selected": False,
+        "default_selected": True,
         "type": "cn",
         "symbol": "sh000001",
     },
@@ -89,7 +89,7 @@ INDEX_CONFIGS = [
         "region": "TW",
         "flag": "",
         "color": "#E11D48",  # 台湾-宝石红 (红色系高对比度)
-        "default_selected": True,
+        "default_selected": False,
         "type": "global",
         "symbol": "中国台湾加权指数",
     },
@@ -133,7 +133,7 @@ INDEX_CONFIGS = [
         "region": "JP",
         "flag": "",
         "color": "#F97316",  # 亚太-暖橙 (QDII tag-other 橙)
-        "default_selected": True,
+        "default_selected": False,
         "type": "global",
         "symbol": "日经225指数",
     },
@@ -144,7 +144,7 @@ INDEX_CONFIGS = [
         "region": "KR",
         "flag": "",
         "color": "#EA580C",  # 亚太-深橙红 (日韩系高对比度)
-        "default_selected": True,
+        "default_selected": False,
         "type": "global",
         "symbol": "首尔综合指数",
     },

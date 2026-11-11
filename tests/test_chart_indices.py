@@ -30,18 +30,15 @@ def test_index_configs_structure():
             default_selected_count += 1
 
     assert len(codes) == 16
-    # 默认选中 7 大核心基准 (NDX, SH000300, HSTECH, TWII, XAU, N225, KOSPI)
-    assert default_selected_count == 7
+    # 默认选中 4 大核心基准 (NDX, SH000001, HSTECH, XAU)
+    assert default_selected_count == 4
     assert "NDX" in codes
-    assert "SH000300" in codes
+    assert "SH000001" in codes
     assert "HSTECH" in codes
-    assert "TWII" in codes
     assert "XAU" in codes
-    assert "N225" in codes
-    assert "KOSPI" in codes
 
     default_codes = {c["code"] for c in INDEX_CONFIGS if c["default_selected"]}
-    assert default_codes == {"NDX", "SH000300", "HSTECH", "TWII", "XAU", "N225", "KOSPI"}
+    assert default_codes == {"NDX", "SH000001", "HSTECH", "XAU"}
 
     # 验证黄金配置必须包含默认选中与标准金黄色系
     gold_cfg = [c for c in INDEX_CONFIGS if c["code"] == "XAU"][0]

@@ -9,7 +9,7 @@ class ChartController {
         // 全球指数对比模块状态
         this.indicesRawData = null;
         this.currentPeriod = '1y';
-        this.selectedIndices = new Set(['NDX', 'SH000300', 'HSTECH', 'TWII', 'XAU', 'N225', 'KOSPI']);
+        this.selectedIndices = new Set(['NDX', 'SH000001', 'HSTECH', 'XAU']);
         this.comparisonEventsBound = false;
         this.matrixSortCol = '1Y';
         this.matrixSortDesc = true;
@@ -103,11 +103,8 @@ class ChartController {
 
             this.indicesRawData = indices;
 
-            // 优先根据数据源中的 default_selected 标识初始化默认对比项
-            const apiDefaults = indices.filter(i => i.default_selected).map(i => i.code);
-            if (apiDefaults.length > 0) {
-                this.selectedIndices = new Set(apiDefaults);
-            }
+            // 默认展示4大核心标的: 纳指100 (NDX), 上证指数 (SH000001), 恒生科技 (HSTECH), 黄金 (XAU)
+            this.selectedIndices = new Set(['NDX', 'SH000001', 'HSTECH', 'XAU']);
 
             // 更新顶部最新数据日期角标
             let latestDateStr = '';
@@ -152,6 +149,7 @@ class ChartController {
                 pill.classList.add('active');
                 this.currentPeriod = pill.dataset.period || '1y';
                 this.matrixSortCol = this.currentPeriod.toUpperCase();
+                this.renderIndexChips();
                 this.updateComparisonChart();
                 this.renderPerformanceMatrix();
             };
@@ -161,10 +159,7 @@ class ChartController {
         const btnDefault = document.getElementById('btn-select-default-indices');
         if (btnDefault) {
             btnDefault.onclick = () => {
-                const defaults = this.indicesRawData
-                    ? this.indicesRawData.filter(i => i.default_selected).map(i => i.code)
-                    : ['NDX', 'SH000300', 'HSTECH', 'TWII', 'XAU', 'N225', 'KOSPI'];
-                this.selectedIndices = new Set(defaults.length > 0 ? defaults : ['NDX', 'SH000300', 'HSTECH', 'TWII', 'XAU', 'N225', 'KOSPI']);
+                this.selectedIndices = new Set(['NDX', 'SH000001', 'HSTECH', 'XAU']);
                 this.renderIndexChips();
                 this.updateComparisonChart();
                 this.renderPerformanceMatrix();
@@ -216,6 +211,8 @@ class ChartController {
         const container = document.getElementById('index-chips-container');
         if (!container || !this.indicesRawData) return;
 
+        const currentPeriodKey = (this.currentPeriod || '1y').toUpperCase();
+
         container.innerHTML = this.indicesRawData.map(item => {
             const isSelected = this.selectedIndices.has(item.code);
             const activeStyle = isSelected
@@ -224,10 +221,24 @@ class ChartController {
             const dotStyle = isSelected
                 ? `background-color: #ffffff;`
                 : `background-color: ${item.color};`;
+
+            // 当前选定周期的收益率百分比
+            const retVal = item.returns ? item.returns[currentPeriodKey] : null;
+            let retHtml = "";
+            if (retVal != null) {
+                const sign = retVal > 0 ? "+" : "";
+                const retStr = `${sign}${Number(retVal).toFixed(2)}%`;
+                const retColor = isSelected
+                    ? "color: #ffffff;"
+                    : (retVal > 0 ? "color: var(--color-up, #ef4444);" : (retVal < 0 ? "color: var(--color-down, #22c55e);" : "color: var(--text-tertiary);"));
+                retHtml = `<span class="chip-return font-mono" style="margin-left: 4px; font-weight: 700; ${retColor}">${retStr}</span>`;
+            }
+
             return `
                 <button class="index-chip ${isSelected ? 'active' : ''}" data-code="${item.code}" style="${activeStyle}">
                     <span class="chip-color-dot" style="${dotStyle}"></span>
                     <span class="chip-name">${item.name}</span>
+                    ${retHtml}
                 </button>
             `;
         }).join('');

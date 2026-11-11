@@ -102,25 +102,26 @@ class HoldingsController {
     }
 
     renderActionBadge(action, label) {
-        if (action === 'new') {
+        if (action === 'new' || label === '新进' || label === '新进建仓') {
             return `<span style="font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; background: rgba(59, 130, 246, 0.1); color: var(--accent-blue, #2563eb); border: 1px solid rgba(59, 130, 246, 0.25); display: inline-flex; align-items: center;">新进</span>`;
         }
 
         let changeStr = (label || '').replace(/^(增持|减持|新进建仓|持有|持平)\s*/, '').trim();
-        if (!changeStr && (action === 'hold' || label === '持平')) {
-            changeStr = '0.00%';
-        }
 
-        if (action === 'buy') {
-            if (!changeStr.startsWith('+') && !changeStr.startsWith('-')) {
+        if (action === 'buy' || (label || '').includes('增持') || (label || '').includes('加仓')) {
+            if (changeStr && !changeStr.startsWith('+') && !changeStr.startsWith('-')) {
                 changeStr = `+${changeStr}`;
             }
-            return `<span style="color: var(--color-up, #ef4444); font-weight: 700; font-family: monospace; font-size: 0.8rem;">${changeStr}</span>`;
-        } else if (action === 'sell') {
-            return `<span style="color: var(--color-down, #22c55e); font-weight: 700; font-family: monospace; font-size: 0.8rem;">${changeStr}</span>`;
+            const displayStr = changeStr ? `增持 ${changeStr}` : '增持';
+            return `<span style="color: var(--color-up, #ef4444); font-weight: 700; font-family: monospace; font-size: 0.8rem;">${displayStr}</span>`;
+        } else if (action === 'sell' || (label || '').includes('减持')) {
+            const displayStr = changeStr ? `减持 ${changeStr}` : '减持';
+            return `<span style="color: var(--color-down, #22c55e); font-weight: 700; font-family: monospace; font-size: 0.8rem;">${displayStr}</span>`;
+        } else if (action === 'hold' || (label || '').includes('持平') || (label || '').includes('持有')) {
+            return `<span style="color: var(--text-tertiary); font-weight: 600; font-size: 0.8rem;">持平</span>`;
         }
 
-        return `<span style="color: var(--text-tertiary); font-family: monospace; font-size: 0.8rem;">${changeStr || '0.00%'}</span>`;
+        return `<span style="color: var(--text-tertiary); font-family: monospace; font-size: 0.8rem;">${label || '持平'}</span>`;
     }
 
     renderTable() {
@@ -182,7 +183,6 @@ class HoldingsController {
                     <td class="col-name">
                         <div style="display: flex; flex-direction: column; align-items: flex-start;">
                             <div style="display: flex; align-items: center; gap: 6px;">
-                                <i data-lucide="${item.avatar_icon || 'user'}" width="14" style="color: var(--text-secondary);"></i>
                                 <span style="font-weight: 700; font-size: 14px; color: var(--text-primary);">${item.name}</span>
                                 <span style="font-size: 10px; background: var(--bg-subtle); border: 1px solid var(--border-light); padding: 1px 5px; border-radius: 3px; color: var(--text-secondary);">${item.style_tags ? item.style_tags[0] : item.style}</span>
                             </div>
@@ -682,7 +682,7 @@ class HoldingsController {
                                 <th style="width: 24px; text-align: center;">#</th>
                                 <th>股票名称 / 代码</th>
                                 <th style="width: 70px; text-align: right; white-space: nowrap;">持仓占比</th>
-                                <th style="width: 75px; text-align: right; white-space: nowrap;">较上季</th>
+                                <th style="width: 95px; text-align: right; white-space: nowrap;">较上季</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -705,7 +705,7 @@ class HoldingsController {
                                         <td style="width: 70px; text-align: right; font-weight: 700; font-family: monospace; white-space: nowrap; font-size: 0.86rem; color: var(--text-primary);">
                                             ${h.weight}%
                                         </td>
-                                        <td style="width: 75px; text-align: right; font-weight: 600; white-space: nowrap;">
+                                        <td style="width: 95px; text-align: right; font-weight: 600; white-space: nowrap;">
                                             ${this.renderActionBadge(h.action, h.action_label)}
                                         </td>
                                     </tr>
@@ -949,6 +949,7 @@ class HoldingsController {
                 pill.classList.add("active");
                 this.currentPeriod = pill.dataset.period || "1y";
                 this.matrixSortCol = this.currentPeriod.toUpperCase();
+                this.renderHoldingsChips();
                 this.updateComparisonChart();
                 this.renderPerformanceMatrix();
             };
@@ -1010,6 +1011,8 @@ class HoldingsController {
         const container = document.getElementById("holdings-chips-container");
         if (!container || !this.comparisonRawData) return;
 
+        const currentPeriodKey = (this.currentPeriod || "1y").toUpperCase();
+
         container.innerHTML = this.comparisonRawData.map(item => {
             const isSelected = this.selectedManagers.has(item.code);
             const activeStyle = isSelected
@@ -1018,10 +1021,27 @@ class HoldingsController {
             const dotStyle = isSelected
                 ? `background-color: #ffffff;`
                 : `background-color: ${item.color};`;
+
+            // 去除 "(基准)"，还原标的纯净名称
+            const baseName = (item.name || "").replace(/\s*\(基准\)/g, "").trim();
+
+            // 当前选定周期的收益率百分比
+            const retVal = item.returns ? item.returns[currentPeriodKey] : null;
+            let retHtml = "";
+            if (retVal != null) {
+                const sign = retVal > 0 ? "+" : "";
+                const retStr = `${sign}${Number(retVal).toFixed(2)}%`;
+                const retColor = isSelected
+                    ? "color: #ffffff;"
+                    : (retVal > 0 ? "color: var(--color-up, #ef4444);" : (retVal < 0 ? "color: var(--color-down, #22c55e);" : "color: var(--text-tertiary);"));
+                retHtml = `<span class="chip-return font-mono" style="margin-left: 4px; font-weight: 700; ${retColor}">${retStr}</span>`;
+            }
+
             return `
                 <button class="index-chip ${isSelected ? "active" : ""}" data-code="${item.code}" style="${activeStyle}">
                     <span class="chip-color-dot" style="${dotStyle}"></span>
-                    <span class="chip-name">${item.name}</span>
+                    <span class="chip-name">${baseName}</span>
+                    ${retHtml}
                 </button>
             `;
         }).join("");

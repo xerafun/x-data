@@ -47,11 +47,11 @@
             <button class="tab-btn active" data-tab="holdings">
                 Holdings
             </button>
-            <button class="tab-btn" data-tab="global">
-                Global
-            </button>
             <button class="tab-btn" data-tab="chart">
                 Chart
+            </button>
+            <button class="tab-btn" data-tab="global">
+                Global
             </button>
             <button class="tab-btn" data-tab="ai">
                 AI
@@ -77,6 +77,102 @@
             <!-- 持仓模块主容器 -->
             <div id="holdings-container">
                 <div class="loading"><i data-lucide="loader-2" class="spin"></i> 数据加载中...</div>
+            </div>
+        </section>
+
+        <!-- Chart / Valuation -->
+        <section class="tab-content" id="chart">
+            <div class="section-header">
+                <h2 class="section-title">Chart</h2>
+                <button class="refresh-btn" onclick="window.app.refreshCurrentTab(true)" title="点击刷新"><i
+                        data-lucide="refresh-cw" width="14"></i> 刷新</button>
+            </div>
+
+            <!-- 全球主要指数走势对比 -->
+            <div class="market-section">
+                <h3 class="subsection-title">全球主要指数对比</h3>
+                <div class="grid">
+                    <div class="card comparison-card" style="grid-column: 1 / -1;">
+                        <div class="card-header comparison-header">
+                            <div class="comparison-header-info">
+                                <span class="comparison-header-title">全球主要指数走势对比</span>
+                                <span class="comparison-date-badge" id="indices-latest-date" style="display:none;"></span>
+                                <button class="info-btn" id="info-indices-comparison" title="说明"><i data-lucide="help-circle" width="14"></i></button>
+                            </div>
+                            <div class="period-pills" id="indices-period-pills">
+                                <button class="period-pill" data-period="1m">近1月</button>
+                                <button class="period-pill" data-period="3m">近3月</button>
+                                <button class="period-pill" data-period="6m">近6月</button>
+                                <button class="period-pill" data-period="ytd">今年以来</button>
+                                <button class="period-pill active" data-period="1y">近1年</button>
+                                <button class="period-pill" data-period="3y">近3年</button>
+                            </div>
+                        </div>
+
+                        <!-- 指数选择切换 Chips -->
+                        <div class="index-chips-wrap">
+                            <div class="index-chips-toolbar">
+                                <span class="index-chips-label">对比指数:</span>
+                                <div class="index-chips-actions">
+                                    <button class="chip-action-btn" id="btn-select-default-indices">默认</button>
+                                    <button class="chip-action-btn" id="btn-select-all-indices">全选</button>
+                                </div>
+                            </div>
+                            <div class="index-chips-list" id="index-chips-container">
+                                <!-- 动态渲染 15 大指数多选标签 -->
+                            </div>
+                        </div>
+
+                        <!-- 图表容器 -->
+                        <div id="indices-comparison-chart" style="width: 100%; height: 460px;">
+                            <div class="loading">Loading...</div>
+                        </div>
+
+                        <!-- 多周期收益率速览看板 -->
+                        <div class="matrix-section">
+                            <div class="matrix-header">
+                                <div class="matrix-title-wrap">
+                                    <span class="matrix-title">多周期收益率对比矩阵</span>
+                                </div>
+                            </div>
+                            <div id="indices-matrix-container" class="matrix-container">
+                                <div class="loading">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 指数估值温度计 -->
+            <div class="market-section" style="margin-top: 36px;">
+                <h3 class="subsection-title">指数估值温度计</h3>
+                <div class="grid">
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div class="card-header val-card-header">
+                            <div class="val-header-info" id="val-header-info">
+                                <span class="val-header-title" id="val-header-title">估值概览</span>
+                                <span class="status-badge medium" id="val-header-badge">--</span>
+                                <button class="info-btn" id="info-index-valuation" title="说明"><i data-lucide="help-circle" width="14"></i></button>
+                            </div>
+                            <div class="valuation-tabs" id="valuation-tabs">
+                                <button class="val-tab active" data-code="NDX">纳指100</button>
+                                <button class="val-tab" data-code="SP500">标普500</button>
+                                <button class="val-tab" data-code="HSI">恒生指数</button>
+                                <button class="val-tab" data-code="SH000300">沪深300</button>
+                                <button class="val-tab" data-code="SH000015">中证红利</button>
+                                <button class="val-tab" data-code="SH000688">科创50</button>
+                                <button class="val-tab" data-code="SZ399006">创业板指</button>
+                                <button class="val-tab" data-code="SH000905">中证500</button>
+                                <button class="val-tab" data-code="SH000016">上证50</button>
+                                <button class="val-tab" data-code="SH000932">中证消费</button>
+                            </div>
+                        </div>
+                        <div id="valuation-summary" class="valuation-summary"></div>
+                        <div id="valuation-chart" style="width: 100%; height: 420px;">
+                            <div class="loading">Loading...</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -182,102 +278,6 @@
                 </div>
             </div>
 
-        </section>
-
-        <!-- Chart / Valuation -->
-        <section class="tab-content" id="chart">
-            <div class="section-header">
-                <h2 class="section-title">Chart</h2>
-                <button class="refresh-btn" onclick="window.app.refreshCurrentTab(true)" title="点击刷新"><i
-                        data-lucide="refresh-cw" width="14"></i> 刷新</button>
-            </div>
-
-            <!-- 全球主要指数走势对比 -->
-            <div class="market-section">
-                <h3 class="subsection-title">全球主要指数对比</h3>
-                <div class="grid">
-                    <div class="card comparison-card" style="grid-column: 1 / -1;">
-                        <div class="card-header comparison-header">
-                            <div class="comparison-header-info">
-                                <span class="comparison-header-title">全球主要指数走势对比</span>
-                                <span class="comparison-date-badge" id="indices-latest-date" style="display:none;"></span>
-                                <button class="info-btn" id="info-indices-comparison" title="说明"><i data-lucide="help-circle" width="14"></i></button>
-                            </div>
-                            <div class="period-pills" id="indices-period-pills">
-                                <button class="period-pill" data-period="1m">近1月</button>
-                                <button class="period-pill" data-period="3m">近3月</button>
-                                <button class="period-pill" data-period="6m">近6月</button>
-                                <button class="period-pill" data-period="ytd">今年以来</button>
-                                <button class="period-pill active" data-period="1y">近1年</button>
-                                <button class="period-pill" data-period="3y">近3年</button>
-                            </div>
-                        </div>
-
-                        <!-- 指数选择切换 Chips -->
-                        <div class="index-chips-wrap">
-                            <div class="index-chips-toolbar">
-                                <span class="index-chips-label">对比指数:</span>
-                                <div class="index-chips-actions">
-                                    <button class="chip-action-btn" id="btn-select-default-indices">默认</button>
-                                    <button class="chip-action-btn" id="btn-select-all-indices">全选</button>
-                                </div>
-                            </div>
-                            <div class="index-chips-list" id="index-chips-container">
-                                <!-- 动态渲染 15 大指数多选标签 -->
-                            </div>
-                        </div>
-
-                        <!-- 图表容器 -->
-                        <div id="indices-comparison-chart" style="width: 100%; height: 460px;">
-                            <div class="loading">Loading...</div>
-                        </div>
-
-                        <!-- 多周期收益率速览看板 -->
-                        <div class="matrix-section">
-                            <div class="matrix-header">
-                                <div class="matrix-title-wrap">
-                                    <span class="matrix-title">多周期收益率对比矩阵</span>
-                                </div>
-                            </div>
-                            <div id="indices-matrix-container" class="matrix-container">
-                                <div class="loading">Loading...</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 指数估值温度计 -->
-            <div class="market-section" style="margin-top: 36px;">
-                <h3 class="subsection-title">指数估值温度计</h3>
-                <div class="grid">
-                    <div class="card" style="grid-column: 1 / -1;">
-                        <div class="card-header val-card-header">
-                            <div class="val-header-info" id="val-header-info">
-                                <span class="val-header-title" id="val-header-title">估值概览</span>
-                                <span class="status-badge medium" id="val-header-badge">--</span>
-                                <button class="info-btn" id="info-index-valuation" title="说明"><i data-lucide="help-circle" width="14"></i></button>
-                            </div>
-                            <div class="valuation-tabs" id="valuation-tabs">
-                                <button class="val-tab active" data-code="NDX">纳指100</button>
-                                <button class="val-tab" data-code="SP500">标普500</button>
-                                <button class="val-tab" data-code="HSI">恒生指数</button>
-                                <button class="val-tab" data-code="SH000300">沪深300</button>
-                                <button class="val-tab" data-code="SH000015">中证红利</button>
-                                <button class="val-tab" data-code="SH000688">科创50</button>
-                                <button class="val-tab" data-code="SZ399006">创业板指</button>
-                                <button class="val-tab" data-code="SH000905">中证500</button>
-                                <button class="val-tab" data-code="SH000016">上证50</button>
-                                <button class="val-tab" data-code="SH000932">中证消费</button>
-                            </div>
-                        </div>
-                        <div id="valuation-summary" class="valuation-summary"></div>
-                        <div id="valuation-chart" style="width: 100%; height: 420px;">
-                            <div class="loading">Loading...</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </section>
 
         <!-- AI Industry -->
@@ -446,12 +446,12 @@
     <script src="js/charts.js?v=49"></script>
     <script src="js/utils.js?v=36"></script>
     <script src="js/modules/market.js?v=38"></script>
-    <script src="js/modules/chart.js?v=3"></script>
+    <script src="js/modules/chart.js?v=6"></script>
     <script src="js/modules/ai.js?v=63"></script>
     <script src="js/modules/gold.js?v=48"></script>
     <script src="js/modules/qdii.js?v=83"></script>
-    <script src="js/modules/holdings.js?v=20"></script>
-    <script src="js/main.js?v=43"></script>
+    <script src="js/modules/holdings.js?v=22"></script>
+    <script src="js/main.js?v=44"></script>
     <script>lucide.createIcons();</script>
 </body>
 

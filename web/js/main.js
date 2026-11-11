@@ -32,12 +32,12 @@ class App {
 
     getPageTitle(tabId) {
         const titles = {
-            'global': 'Global',
+            'holdings': 'Holdings',
             'chart': 'Chart',
+            'global': 'Global',
             'ai': 'AI',
             'gold': 'Gold',
             'qdii': 'QDII',
-            'holdings': 'Holdings',
         };
         const sectionTitle = titles[tabId] || 'X-Data';
         return sectionTitle === 'X-Data' ? sectionTitle : `${sectionTitle}｜X-Data`;
@@ -93,11 +93,11 @@ class App {
                         break;
                     case '2':
                         event.preventDefault();
-                        this.switchTab('global');
+                        this.switchTab('chart');
                         break;
                     case '3':
                         event.preventDefault();
-                        this.switchTab('chart');
+                        this.switchTab('global');
                         break;
                     case '4':
                         event.preventDefault();
@@ -147,7 +147,7 @@ class App {
         // 监听浏览器前进/后退
         window.addEventListener('popstate', () => {
             const urlTab = utils.getUrlParam('tab') || 'holdings';
-            const validTabs = ['holdings', 'global', 'chart', 'ai', 'gold', 'qdii'];
+            const validTabs = ['holdings', 'chart', 'global', 'ai', 'gold', 'qdii'];
             const targetTab = validTabs.includes(urlTab) ? urlTab : 'holdings';
             if (this.currentTab !== targetTab) {
                 this.switchTab(targetTab, false);
@@ -311,7 +311,7 @@ class App {
             'index-valuation': 'chart',
             'charts': 'chart'
         };
-        const validTabs = ['holdings', 'global', 'chart', 'ai', 'gold', 'qdii'];
+        const validTabs = ['holdings', 'chart', 'global', 'ai', 'gold', 'qdii'];
         const targetTab = legacyMap[urlTab] || urlTab;
 
         if (targetTab && validTabs.includes(targetTab)) {
