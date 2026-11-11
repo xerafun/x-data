@@ -15,8 +15,6 @@ class HoldingsController {
         this.currentPeriod = "1y";
         this.selectedManagers = new Set(["burry", "duan", "buffett", "SP500"]);
         this.comparisonRawData = null;
-        this.matrixSortCol = "1Y";
-        this.matrixSortDesc = true;
         window.holdingsController = this;
     }
 
@@ -380,16 +378,6 @@ class HoldingsController {
                         <div id="holdings-comparison-chart" style="width: 100%; height: 440px;">
                             <div class="loading">Loading...</div>
                         </div>
-
-                        <!-- 多周期收益率速览看板 -->
-                        <div class="matrix-section">
-                            <div class="matrix-header">
-                                <div class="matrix-title-wrap">
-                                    <span class="matrix-title">多周期收益率对比矩阵</span>
-                                </div>
-                            </div>
-                            <div id="holdings-matrix-container"></div>
-                        </div>
                     </div>
                 </div>
             `;
@@ -453,7 +441,6 @@ class HoldingsController {
             this.bindComparisonEvents();
             this.renderHoldingsChips();
             this.updateComparisonChart();
-            this.renderPerformanceMatrix();
         }
 
         if (consensus && consensus.length > 0) {
@@ -948,10 +935,8 @@ class HoldingsController {
                 pills.forEach(p => p.classList.remove("active"));
                 pill.classList.add("active");
                 this.currentPeriod = pill.dataset.period || "1y";
-                this.matrixSortCol = this.currentPeriod.toUpperCase();
                 this.renderHoldingsChips();
                 this.updateComparisonChart();
-                this.renderPerformanceMatrix();
             };
         });
 
@@ -961,7 +946,6 @@ class HoldingsController {
                 this.selectedManagers = new Set(["burry", "duan", "buffett", "SP500"]);
                 this.renderHoldingsChips();
                 this.updateComparisonChart();
-                this.renderPerformanceMatrix();
             };
         }
 
@@ -972,7 +956,6 @@ class HoldingsController {
                     this.selectedManagers = new Set(this.comparisonRawData.map(i => i.code));
                     this.renderHoldingsChips();
                     this.updateComparisonChart();
-                    this.renderPerformanceMatrix();
                 }
             };
         }
@@ -1060,7 +1043,6 @@ class HoldingsController {
 
                 this.renderHoldingsChips();
                 this.updateComparisonChart();
-                this.renderPerformanceMatrix();
             };
         });
     }
@@ -1183,143 +1165,6 @@ class HoldingsController {
                 series: series
             });
         }
-    }
-
-    renderPerformanceMatrix() {
-        const container = document.getElementById("holdings-matrix-container");
-        if (!container || !this.comparisonRawData) return;
-
-        let list = [...this.comparisonRawData];
-        const sortCol = this.matrixSortCol || "1Y";
-        const isDesc = this.matrixSortDesc !== false;
-
-        list.sort((a, b) => {
-            let valA, valB;
-            if (sortCol === "latest_close") {
-                valA = a.latest_close || 0;
-                valB = b.latest_close || 0;
-            } else if (sortCol === "name") {
-                return isDesc ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name);
-            } else if (sortCol === "ALPHA") {
-                valA = a.alpha != null ? a.alpha : -99999;
-                valB = b.alpha != null ? b.alpha : -99999;
-            } else {
-                valA = a.returns && a.returns[sortCol] != null ? a.returns[sortCol] : -99999;
-                valB = b.returns && b.returns[sortCol] != null ? b.returns[sortCol] : -99999;
-            }
-            return isDesc ? valB - valA : valA - valB;
-        });
-
-        const periods = ["1D", "1W", "1M", "3M", "6M", "YTD", "1Y", "3Y"];
-        const periodLabels = {
-            "1D": "日涨跌",
-            "1W": "近1周",
-            "1M": "近1月",
-            "3M": "近3月",
-            "6M": "近6月",
-            "YTD": "今年以来",
-            "1Y": "近1年",
-            "3Y": "近3年"
-        };
-
-        const isSortName = sortCol === "name";
-        const sortIconName = isSortName ? (isDesc ? " ▼" : " ▲") : "";
-        const isCurrentName = isSortName ? "current-period-header" : "";
-
-        const isSortClose = sortCol === "latest_close";
-        const sortIconClose = isSortClose ? (isDesc ? " ▼" : " ▲") : "";
-        const isCurrentClose = isSortClose ? "current-period-header" : "";
-
-        const isSortAlpha = sortCol === "ALPHA";
-        const sortIconAlpha = isSortAlpha ? (isDesc ? " ▼" : " ▲") : "";
-        const isCurrentAlpha = isSortAlpha ? "current-period-header" : "";
-
-        let tableHtml = `
-            <div class="matrix-table-wrap">
-                <table class="matrix-table">
-                    <thead>
-                        <tr>
-                            <th class="col-index sortable ${isCurrentName}" data-sort="name">舵手 / 基准${sortIconName}</th>
-                            <th class="col-close sortable text-right ${isCurrentClose}" data-sort="latest_close">净值指数${sortIconClose}</th>
-                            ${periods.map(p => {
-                                const isSort = sortCol === p;
-                                const sortIcon = isSort ? (isDesc ? " ▼" : " ▲") : "";
-                                const isCurrent = isSort ? "current-period-header" : "";
-                                return `<th class="col-ret sortable text-right ${isCurrent}" data-sort="${p}">${periodLabels[p]}${sortIcon}</th>`;
-                            }).join("")}
-                            <th class="col-ret sortable text-right ${isCurrentAlpha}" data-sort="ALPHA" title="相对于标普500近1年的超额收益率">超额 Alpha${sortIconAlpha}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
-
-        list.forEach(item => {
-            const closeFormatted = item.latest_close != null 
-                ? Number(item.latest_close).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) 
-                : "--";
-            const isCurrentCloseCol = isSortClose ? "current-period-cell" : "";
-
-            tableHtml += `
-                <tr class="matrix-row">
-                    <td class="col-index">
-                        <div class="matrix-index-cell" style="display:flex; align-items:center; gap:8px;">
-                            <span class="chip-color-dot" style="background-color: ${item.color};"></span>
-                            <div>
-                                <span class="matrix-name" style="font-weight: 700; color: var(--text-primary);">${item.name}</span>
-                                <span class="matrix-code" style="font-size: 11px; color: var(--text-secondary); margin-left: 6px;">${item.full_name}</span>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="col-close text-right font-mono ${isCurrentCloseCol}" style="font-weight: 600;">${closeFormatted}</td>
-            `;
-
-            periods.forEach(p => {
-                const val = item.returns ? item.returns[p] : null;
-                const isCurrent = sortCol === p;
-                const cellClass = isCurrent ? "current-period-cell" : "";
-
-                if (val == null || isNaN(val)) {
-                    tableHtml += `<td class="col-ret text-right font-mono text-flat ${cellClass}">--</td>`;
-                } else {
-                    const colorClass = typeof APP_CONFIG !== "undefined" ? APP_CONFIG.getChangeClass(val) : (val > 0 ? "text-up" : (val < 0 ? "text-down" : "text-flat"));
-                    const sign = val > 0 ? "+" : "";
-                    tableHtml += `<td class="col-ret text-right font-mono ${colorClass} ${cellClass}" style="font-weight: 700;">${sign}${val.toFixed(2)}%</td>`;
-                }
-            });
-
-            const alphaVal = item.alpha;
-            const alphaClass = typeof APP_CONFIG !== "undefined" ? APP_CONFIG.getChangeClass(alphaVal) : (alphaVal > 0 ? "text-up" : (alphaVal < 0 ? "text-down" : "text-flat"));
-            const alphaSign = (alphaVal != null && alphaVal > 0) ? "+" : "";
-            const alphaStr = (alphaVal != null && !isNaN(alphaVal)) ? `${alphaSign}${alphaVal.toFixed(2)}%` : "--";
-            const isAlphaCurrent = isSortAlpha ? "current-period-cell" : "";
-            tableHtml += `<td class="col-ret text-right font-mono ${alphaClass} ${isAlphaCurrent}" style="font-weight: 700;">${alphaStr}</td>`;
-
-            tableHtml += `</tr>`;
-        });
-
-        tableHtml += `
-                    </tbody>
-                </table>
-            </div>
-        `;
-
-        container.innerHTML = tableHtml;
-
-        container.querySelectorAll(".matrix-table th.sortable").forEach(th => {
-            th.onclick = () => {
-                const sortKey = th.dataset.sort;
-                if (!sortKey) return;
-
-                if (this.matrixSortCol === sortKey) {
-                    this.matrixSortDesc = !this.matrixSortDesc;
-                } else {
-                    this.matrixSortCol = sortKey;
-                    this.matrixSortDesc = true;
-                }
-
-                this.renderPerformanceMatrix();
-            };
-        });
     }
 
 }

@@ -11,8 +11,6 @@ class ChartController {
         this.currentPeriod = '1y';
         this.selectedIndices = new Set(['NDX', 'SH000001', 'HSTECH', 'XAU']);
         this.comparisonEventsBound = false;
-        this.matrixSortCol = '1Y';
-        this.matrixSortDesc = true;
 
         // 自动重试轮询状态 (解决冷启动 warming_up 假死)
         this._comparisonRetryTimer = null;
@@ -64,20 +62,15 @@ class ChartController {
 
     async loadIndicesComparison() {
         const chartContainer = document.getElementById('indices-comparison-chart');
-        const matrixContainer = document.getElementById('indices-matrix-container');
         if (!chartContainer) return;
 
         // 呈现加载态
         chartContainer.innerHTML = '<div class="loading">Loading...</div>';
-        if (matrixContainer) {
-            matrixContainer.innerHTML = '<div class="loading">Loading...</div>';
-        }
 
         try {
             const res = await api.getIndicesComparison();
             if (res && res._warming_up) {
                 chartContainer.innerHTML = `<div class="loading">${res.message || '全球指数数据后台准备中，正在自动获取...'}</div>`;
-                if (matrixContainer) matrixContainer.innerHTML = `<div class="loading">${res.message || '数据预热中，正在自动获取...'}</div>`;
                 this._comparisonRetryCount = (this._comparisonRetryCount || 0) + 1;
                 if (this._comparisonRetryCount <= 12 && !this._comparisonRetryTimer) {
                     this._comparisonRetryTimer = setTimeout(() => {
@@ -90,14 +83,12 @@ class ChartController {
             this._comparisonRetryCount = 0;
             if (res && res._error) {
                 chartContainer.innerHTML = `<div class="loading error">${res.message || '全球指数数据获取失败'}</div>`;
-                if (matrixContainer) matrixContainer.innerHTML = '';
                 return false;
             }
 
             const indices = res && res.data ? res.data.indices : (res && res.indices ? res.indices : []);
             if (!indices || indices.length === 0) {
                 chartContainer.innerHTML = '<div class="loading error">全球指数数据不可用</div>';
-                if (matrixContainer) matrixContainer.innerHTML = '';
                 return false;
             }
 
@@ -124,9 +115,6 @@ class ChartController {
 
             // 绘制归一化对比折线图
             this.updateComparisonChart();
-
-            // 绘制多周期收益率看板
-            this.renderPerformanceMatrix();
             return true;
 
         } catch (error) {
@@ -135,7 +123,6 @@ class ChartController {
             if (chartContainer) {
                 chartContainer.innerHTML = `<div class="loading error">全球指数对比加载失败: ${error.message || error}</div>`;
             }
-            if (matrixContainer) matrixContainer.innerHTML = '';
             return false;
         }
     }
@@ -148,10 +135,8 @@ class ChartController {
                 pills.forEach(p => p.classList.remove('active'));
                 pill.classList.add('active');
                 this.currentPeriod = pill.dataset.period || '1y';
-                this.matrixSortCol = this.currentPeriod.toUpperCase();
                 this.renderIndexChips();
                 this.updateComparisonChart();
-                this.renderPerformanceMatrix();
             };
         });
 
@@ -162,7 +147,6 @@ class ChartController {
                 this.selectedIndices = new Set(['NDX', 'SH000001', 'HSTECH', 'XAU']);
                 this.renderIndexChips();
                 this.updateComparisonChart();
-                this.renderPerformanceMatrix();
             };
         }
 
@@ -173,7 +157,6 @@ class ChartController {
                     this.selectedIndices = new Set(this.indicesRawData.map(i => i.code));
                     this.renderIndexChips();
                     this.updateComparisonChart();
-                    this.renderPerformanceMatrix();
                 }
             };
         }
@@ -258,7 +241,6 @@ class ChartController {
 
                 this.renderIndexChips();
                 this.updateComparisonChart();
-                this.renderPerformanceMatrix();
             };
         });
     }
@@ -380,122 +362,6 @@ class ChartController {
         charts.createMultiIndexComparisonChart('indices-comparison-chart', {
             dates: unifiedDates,
             series: series
-        });
-    }
-
-    renderPerformanceMatrix() {
-        const container = document.getElementById('indices-matrix-container');
-        if (!container || !this.indicesRawData) return;
-
-        // 复制数据用于排序
-        let list = [...this.indicesRawData];
-
-        const sortCol = this.matrixSortCol || '1Y';
-        const isDesc = this.matrixSortDesc !== false;
-
-        list.sort((a, b) => {
-            let valA, valB;
-            if (sortCol === 'latest_close') {
-                valA = a.latest_close || 0;
-                valB = b.latest_close || 0;
-            } else if (sortCol === 'name') {
-                return isDesc ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name);
-            } else {
-                valA = a.returns && a.returns[sortCol] != null ? a.returns[sortCol] : -99999;
-                valB = b.returns && b.returns[sortCol] != null ? b.returns[sortCol] : -99999;
-            }
-            return isDesc ? valB - valA : valA - valB;
-        });
-
-        const periods = ['1D', '1W', '1M', '3M', '6M', 'YTD', '1Y', '3Y'];
-        const periodLabels = {
-            '1D': '日涨跌',
-            '1W': '近1周',
-            '1M': '近1月',
-            '3M': '近3月',
-            '6M': '近6月',
-            'YTD': '今年以来',
-            '1Y': '近1年',
-            '3Y': '近3年'
-        };
-
-        const isSortName = sortCol === 'name';
-        const sortIconName = isSortName ? (isDesc ? ' ▼' : ' ▲') : '';
-        const isCurrentName = isSortName ? 'current-period-header' : '';
-
-        const isSortClose = sortCol === 'latest_close';
-        const sortIconClose = isSortClose ? (isDesc ? ' ▼' : ' ▲') : '';
-        const isCurrentClose = isSortClose ? 'current-period-header' : '';
-
-        let tableHtml = `
-            <div class="matrix-table-wrap">
-                <table class="matrix-table">
-                    <thead>
-                        <tr>
-                            <th class="col-index sortable ${isCurrentName}" data-sort="name">指数名称${sortIconName}</th>
-                            <th class="col-close sortable text-right ${isCurrentClose}" data-sort="latest_close">最新收盘${sortIconClose}</th>
-                            ${periods.map(p => {
-                                const isSort = sortCol === p;
-                                const sortIcon = isSort ? (isDesc ? ' ▼' : ' ▲') : '';
-                                const isCurrent = isSort ? 'current-period-header' : '';
-                                return `<th class="col-ret sortable text-right ${isCurrent}" data-sort="${p}">${periodLabels[p]}${sortIcon}</th>`;
-                            }).join('')}
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
-
-        list.forEach(item => {
-            const closeFormatted = item.latest_close != null ? Number(item.latest_close).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '--';
-            const isCurrentCloseCol = isSortClose ? 'current-period-cell' : '';
-
-            tableHtml += `
-                <tr class="matrix-row">
-                    <td class="col-index">
-                        <div class="matrix-index-cell">
-                            <span class="chip-color-dot" style="background-color: ${item.color};"></span>
-                            <span class="matrix-name">${item.name}</span>
-                            <span class="matrix-code">${item.code}</span>
-                        </div>
-                    </td>
-                    <td class="col-close text-right font-mono ${isCurrentCloseCol}">${closeFormatted}</td>
-                    ${periods.map(p => {
-                        const val = item.returns ? item.returns[p] : null;
-                        let valStr = '--';
-                        let cls = 'val-flat';
-                        if (val != null) {
-                            valStr = (val > 0 ? '+' : '') + Number(val).toFixed(2) + '%';
-                            cls = val > 0 ? 'val-up' : (val < 0 ? 'val-down' : 'val-flat');
-                        }
-                        const isCurrentCol = sortCol === p ? 'current-period-cell' : '';
-                        return `<td class="col-ret text-right font-mono ${cls} ${isCurrentCol}">${valStr}</td>`;
-                    }).join('')}
-                </tr>
-            `;
-        });
-
-        tableHtml += `
-                    </tbody>
-                </table>
-            </div>
-        `;
-
-        container.innerHTML = tableHtml;
-
-        // 绑定表头排序
-        container.querySelectorAll('th.sortable').forEach(th => {
-            th.onclick = (e) => {
-                e.stopPropagation();
-                const col = th.dataset.sort;
-                if (!col) return;
-                if (this.matrixSortCol === col) {
-                    this.matrixSortDesc = !this.matrixSortDesc;
-                } else {
-                    this.matrixSortCol = col;
-                    this.matrixSortDesc = true;
-                }
-                this.renderPerformanceMatrix();
-            };
         });
     }
 
