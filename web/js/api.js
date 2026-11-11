@@ -88,13 +88,18 @@ class API {
     }
 
     _buildURL(endpoint, forceRefresh = false) {
-        const url = new URL(`${this.baseURL}${endpoint}`, window.location.origin);
+        // 本地开发环境 (localhost / 127.0.0.1 / file:) 自动直连生产 API 服务器
+        const isLocal = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1' || 
+                        window.location.protocol === 'file:';
+        const baseOrigin = isLocal ? 'https://data.xerafun.com' : window.location.origin;
+        const url = new URL(`${this.baseURL}${endpoint}`, baseOrigin);
         if (forceRefresh) {
             url.searchParams.set('_refresh', this.forceRefreshToken);
         }
         // 自动附加防缓存时间戳 _t，彻底避免微信/移动端 WebView 缓存动态接口数据
         url.searchParams.set('_t', Date.now().toString());
-        return url.pathname + url.search;
+        return isLocal ? url.toString() : (url.pathname + url.search);
     }
 
     async _executeRequest(url, config, endpoint) {

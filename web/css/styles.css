@@ -31,6 +31,7 @@
     --bg-header: #0a0a0a;
     --bg-card: #ffffff;
     --bg-subtle: #f5f5f5;
+    --bg-hover: #f5f5f5;
 
     --border-light: #e5e5e5;
     --border-dark: #262626;
@@ -3591,6 +3592,10 @@ footer a:hover {
     opacity: 0.85;
 }
 
+body.modal-open {
+    overflow: hidden !important;
+}
+
 .qdii-modal-overlay {
     position: fixed;
     top: 0;
@@ -3608,6 +3613,7 @@ footer a:hover {
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.25s ease, visibility 0.25s ease;
+    overscroll-behavior: contain;
 }
 
 .qdii-modal-overlay.active {
@@ -3626,6 +3632,7 @@ footer a:hover {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    overscroll-behavior: contain;
     transform: scale(0.95);
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -4691,6 +4698,15 @@ footer a:hover {
     width: 100%;
 }
 
+.holdings-rank-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.holdings-rank-table tbody tr.qdii-clickable:hover,
+.holdings-rank-table tbody tr:hover {
+    background: var(--bg-subtle, #f5f5f5) !important;
+}
+
 .holdings-view-btn {
     display: inline-flex;
     align-items: center;
@@ -4708,10 +4724,11 @@ footer a:hover {
 }
 
 .holdings-view-btn:hover,
-.qdii-clickable:hover .holdings-view-btn {
+.holdings-rank-table tbody tr:hover .holdings-view-btn {
     color: var(--primary);
     border-color: var(--primary);
-    background: var(--bg-subtle);
+    background: var(--bg-card);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 /* 响应式切换 (桌面端宽表 vs 移动端卡片) */
@@ -4735,40 +4752,63 @@ footer a:hover {
     }
 }
 
-/* 移动端舵手金融卡片 */
+/* 移动端舵手精简金融卡片 (轻量化单行金融列表) */
 .holdings-mcard-item {
     background: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: 8px;
-    padding: 10px 12px;
+    padding: 12px 14px;
     cursor: pointer;
-    transition: border-color 0.2s ease;
+    transition: background-color 0.12s ease, transform 0.12s ease;
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.holdings-mcard-item:hover {
-    border-color: var(--primary);
-}
-
-.holdings-mcard-header {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.holdings-mcard-item:active {
+    background: var(--bg-hover, rgba(0, 0, 0, 0.02));
+    transform: scale(0.99);
 }
 
 .holdings-mcard-left {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     min-width: 0;
+    flex: 1;
+}
+
+.holdings-mcard-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.holdings-mcard-title-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
 }
 
 .holdings-mcard-title {
     font-size: 14px;
     font-weight: 700;
     color: var(--text-primary);
+    line-height: 1.25;
+}
+
+.holdings-mcard-tag {
+    font-size: 10px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--text-secondary);
+    line-height: 1.2;
 }
 
 .holdings-mcard-inst {
@@ -4777,36 +4817,42 @@ footer a:hover {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.2;
 }
 
-.holdings-mcard-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 4px;
-    background: var(--bg-subtle);
-    padding: 8px 6px;
-    border-radius: 6px;
+.holdings-mcard-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
-.holdings-mcard-cell {
-    text-align: center;
-    min-width: 0;
+.holdings-mcard-metric {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
 }
 
 .holdings-mcard-val {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     font-family: var(--font-mono);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.2;
 }
 
 .holdings-mcard-lbl {
     font-size: 10px;
-    color: var(--text-secondary);
-    margin-top: 2px;
-    white-space: nowrap;
+    color: var(--text-tertiary);
+    line-height: 1.2;
+}
+
+.holdings-mcard-arrow {
+    width: 14px;
+    height: 14px;
+    color: var(--text-tertiary);
+    stroke-width: 2.2;
+    flex-shrink: 0;
 }
 
 /* 持仓详情弹窗 (Holdings Modal 对标 QDII Holdings Modal) */
@@ -4837,6 +4883,7 @@ footer a:hover {
     max-height: 65vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     padding: 0;
 }
 
@@ -4903,109 +4950,290 @@ footer a:hover {
     border-radius: 2px;
 }
 
-/* 顶流共识榜单卡片 */
+/* 顶流共识榜单卡片 (现代金融环形图呈现) */
 .consensus-card {
-    margin-top: 16px;
+    margin-top: 14px;
+    height: auto !important;
+    min-height: auto !important;
+    padding: 16px;
 }
 
-.consensus-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 8px;
-}
-
-.consensus-item {
-    background: var(--bg-subtle);
-    border: 1px solid var(--border-light);
-    border-radius: 6px;
-    padding: 10px 12px;
+.consensus-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: border-color 0.2s ease;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
 }
 
-.consensus-item:hover {
-    border-color: var(--primary);
-}
-
-.consensus-item-left {
-    min-width: 0;
-    flex: 1;
-}
-
-.consensus-item-right {
-    text-align: right;
-    font-family: var(--font-mono);
+.consensus-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
     white-space: nowrap;
-    margin-left: 8px;
+}
+
+.consensus-scale-summary {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+}
+
+.consensus-scale-summary b {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.consensus-chart-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    width: 100%;
+}
+
+.consensus-chart-canvas {
+    width: 260px;
+    height: 240px;
     flex-shrink: 0;
 }
 
-.consensus-sym {
-    font-size: 13px;
+.consensus-legend-list {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    align-items: start;
+}
+
+.consensus-legend-col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.consensus-legend-item {
+    display: flex;
+    flex-direction: column;
+    padding: 7px 10px;
+    border-radius: 6px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    user-select: none;
+}
+
+.consensus-legend-item.expanded {
+    background: var(--bg-card);
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .consensus-legend-item:hover {
+        background: var(--bg-card);
+        border-color: var(--primary);
+    }
+}
+
+.consensus-legend-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px;
+}
+
+.consensus-legend-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.consensus-legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.consensus-legend-sym {
+    font-size: 12px;
     font-weight: 700;
     font-family: var(--font-mono);
     color: var(--text-primary);
 }
 
-.consensus-name {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-left: 6px;
-}
-
-.consensus-holders {
+.consensus-legend-name {
     font-size: 11px;
     color: var(--text-secondary);
-    margin-top: 3px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.consensus-count {
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--primary);
+.consensus-legend-count {
+    font-size: 9.5px;
+    color: var(--text-secondary);
     background: var(--bg-card);
     border: 1px solid var(--border-light);
-    padding: 1px 5px;
+    padding: 0 4px;
     border-radius: 3px;
+    flex-shrink: 0;
 }
 
-.consensus-value {
+.consensus-legend-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
     font-size: 11px;
-    font-weight: 600;
+}
+
+.consensus-legend-val {
     color: var(--text-secondary);
-    margin-top: 2px;
+    font-weight: 600;
+}
+
+.consensus-legend-pct {
+    color: var(--text-primary);
+    font-weight: 700;
+    width: 38px;
+    text-align: right;
+}
+
+.consensus-drawer-arrow {
+    width: 13px;
+    height: 13px;
+    color: var(--text-tertiary);
+    transition: transform 0.2s ease, color 0.15s ease;
+    flex-shrink: 0;
+}
+
+.consensus-legend-item:hover .consensus-drawer-arrow {
+    color: var(--text-primary);
+}
+
+.consensus-legend-item.expanded .consensus-drawer-arrow {
+    transform: rotate(180deg);
+    color: var(--primary);
+}
+
+/* 下拉抽屉明细展示 */
+.consensus-item-drawer {
+    display: none;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border-light);
+    width: 100%;
+    cursor: default;
+    user-select: text;
+}
+
+.consensus-legend-item.expanded .consensus-item-drawer {
+    display: block;
+    animation: consensusDrawerFadeIn 0.18s ease;
+}
+
+@keyframes consensusDrawerFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-3px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.consensus-drawer-title {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.consensus-drawer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.consensus-drawer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3px 6px;
+    border-radius: 4px;
+    background: var(--bg-subtle);
+    font-size: 11px;
+}
+
+.consensus-drawer-mgr {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.consensus-drawer-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+}
+
+.consensus-drawer-weight {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.consensus-drawer-action {
+    font-size: 10.5px;
+    font-weight: 600;
+}
+
+.consensus-drawer-action.action-buy {
+    color: var(--color-up, #ef4444);
+}
+
+.consensus-drawer-action.action-sell {
+    color: var(--color-down, #22c55e);
+}
+
+.consensus-drawer-action.action-new {
+    color: var(--accent-blue, #2563eb);
+}
+
+.consensus-drawer-action.action-hold {
+    color: var(--text-tertiary);
 }
 
 @media (max-width: 640px) {
-    .holdings-modal-card {
-        width: 95vw !important;
-        max-height: 88vh !important;
-        border-radius: 8px !important;
+    .consensus-card {
+        padding: 12px 14px !important;
+        margin-top: 10px !important;
     }
-    .holdings-modal-meta {
-        padding: 6px 12px;
-        font-size: 10px;
+    .consensus-chart-wrapper {
+        flex-direction: column;
+        gap: 10px;
     }
-    .holdings-modal-meta b {
-        font-size: 11px;
+    .consensus-chart-canvas {
+        width: 100%;
+        height: 210px;
     }
-    .holdings-modal-table th,
-    .holdings-modal-table td {
-        padding: 6px 4px;
-        font-size: 12px;
-    }
-    .holdings-mcard-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .consensus-legend-list {
+        width: 100%;
+        grid-template-columns: 1fr;
         gap: 6px;
     }
-    .consensus-grid {
-        grid-template-columns: 1fr;
+    .consensus-legend-item {
+        padding: 6px 8px;
     }
 }
 

@@ -1177,8 +1177,9 @@ class Charts {
             symbol: 'circle',
             symbolSize: 6,
             lineStyle: {
-                width: 2.2,
-                color: s.color
+                width: s.lineWidth || 2.2,
+                color: s.color,
+                type: s.lineType || 'solid'
             },
             itemStyle: {
                 color: s.color

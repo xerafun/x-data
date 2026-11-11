@@ -623,6 +623,12 @@ class QDIIController {
                 if (e.target === overlay) this.closeHoldingsModal();
             };
 
+            overlay.addEventListener('touchmove', (e) => {
+                if (e.target === overlay) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && overlay.classList.contains('active')) {
                     this.closeHoldingsModal();
@@ -648,6 +654,7 @@ class QDIIController {
             closeBtn.onclick = () => this.closeHoldingsModal();
         }
         overlay.classList.add('active');
+        document.body.classList.add('modal-open');
         if (window.lucide) lucide.createIcons();
 
         try {
@@ -960,6 +967,7 @@ class QDIIController {
     closeHoldingsModal() {
         const overlay = document.getElementById('qdii-holdings-modal');
         if (overlay) overlay.classList.remove('active');
+        document.body.classList.remove('modal-open');
     }
 }
 
