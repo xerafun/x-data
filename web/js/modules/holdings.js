@@ -1,9 +1,8 @@
-// 顶级机构与知名投资人 13F 持仓风向标模块 (对标 QDII 收益排名与持仓明细模式)
+// 顶级机构与知名投资人 13F 持仓风向标模块 (对标 QDII 收益排名与移动端极简弹窗模式)
 // 依赖: utils.js, api.js, styles.css
 
 class HoldingsController {
     constructor() {
-        this.currentFilter = 'all';
         this.overviewData = null;
         this.rawManagers = [];
         this.benchmarks = {
@@ -64,26 +63,12 @@ class HoldingsController {
             });
 
             this.renderTable();
-            this.bindFilterButtons();
             return true;
         } catch (error) {
             console.error('加载机构持仓失败:', error);
             utils.renderError('holdings-container', '顶级机构持仓数据加载失败');
             return false;
         }
-    }
-
-    bindFilterButtons() {
-        const buttons = document.querySelectorAll('.holdings-filter-btn');
-        buttons.forEach(btn => {
-            btn.classList.toggle('active', (btn.dataset.filter || 'all') === this.currentFilter);
-            btn.onclick = () => {
-                buttons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                this.currentFilter = btn.dataset.filter || 'all';
-                this.renderTable();
-            };
-        });
     }
 
     formatMoney(val) {
@@ -100,49 +85,45 @@ class HoldingsController {
     renderActionBadge(action, label) {
         const text = label || '持有';
         if (action === 'buy') {
-            return `<span class="badge-action badge-action-buy"><i data-lucide="trending-up" width="11"></i> ${text}</span>`;
+            return `<span class="badge-action badge-action-buy"><i data-lucide="trending-up" width="10"></i> ${text}</span>`;
         } else if (action === 'sell') {
-            return `<span class="badge-action badge-action-sell"><i data-lucide="trending-down" width="11"></i> ${text}</span>`;
+            return `<span class="badge-action badge-action-sell"><i data-lucide="trending-down" width="10"></i> ${text}</span>`;
         } else if (action === 'new') {
-            return `<span class="badge-action badge-action-new"><i data-lucide="sparkles" width="11"></i> ${text}</span>`;
+            return `<span class="badge-action badge-action-new"><i data-lucide="sparkles" width="10"></i> ${text}</span>`;
         }
-        return `<span class="badge-action badge-action-hold"><i data-lucide="minus" width="11"></i> ${text}</span>`;
+        return `<span class="badge-action badge-action-hold"><i data-lucide="minus" width="10"></i> ${text}</span>`;
     }
 
     renderTable() {
         const container = document.getElementById('holdings-container');
         if (!container || !this.overviewData) return;
 
-        let filtered = this.rawManagers;
-        if (this.currentFilter !== 'all') {
-            filtered = this.rawManagers.filter(m => m.category === this.currentFilter);
-        }
-
-        if (!filtered.length) {
-            utils.renderError('holdings-container', '该分类下暂无舵手数据');
+        const managers = this.rawManagers;
+        if (!managers.length) {
+            utils.renderError('holdings-container', '暂无舵手数据');
             return;
         }
 
         const spxReturn = this.benchmarks.SPX?.return_1y || 19.23;
         const ndxReturn = this.benchmarks.NDX?.return_1y || 24.69;
 
-        // 1. 基准参考通知栏 (对标 QDII 基准参考设计)
+        // 1. 基准参考通知栏 (精简极简版，去除冗余分类标签)
         const benchmarkNotice = `
             <div class="holdings-benchmark-bar">
-                <div>
-                    <div><strong>【美股大盘基准参考】标普500 (SPX) 近1年：<span class="text-up">+${utils.formatPercentage(spxReturn)}</span> · 纳斯达克100 (NDX)：<span class="text-up">+${utils.formatPercentage(ndxReturn)}</span></strong></div>
-                    <div style="font-size: 0.68rem; color: var(--text-tertiary); margin-top: 3px;">* 数据口径：基于各投资实体最新披露 SEC 13F-HR 法定持仓组合近 1 年表现加权核算，点击任一舵手即可展开全景持仓明细。</div>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <strong>标普500 (SPX)：<span class="text-up">+${utils.formatPercentage(spxReturn)}</span></strong>
+                    <span style="color: var(--border-light);">·</span>
+                    <strong>纳指100 (NDX)：<span class="text-up">+${utils.formatPercentage(ndxReturn)}</span></strong>
+                    <span style="font-size: 10px; color: var(--text-tertiary); background: var(--bg-card); border: 1px solid var(--border-light); padding: 1px 5px; border-radius: 3px;">近1年基准</span>
                 </div>
-                <div class="holdings-legend-group">
-                    <span class="holdings-legend-tag">价值投资</span>
-                    <span class="holdings-legend-tag">宏观对冲</span>
-                    <span class="holdings-legend-tag">成长投资</span>
+                <div class="holdings-benchmark-sub">
+                    基于各实体最新 SEC 13F-HR 法定持仓加权核算 · 点击任一舵手查看持仓明细
                 </div>
             </div>
         `;
 
         // 2. 桌面端宽屏排行榜表格行渲染
-        const desktopRowsHtml = filtered.map((item, index) => {
+        const desktopRowsHtml = managers.map((item, index) => {
             const rank = index + 1;
             const rankBadgeClass = rank === 1 ? 'rank-top1' : rank === 2 ? 'rank-top2' : rank === 3 ? 'rank-top3' : 'rank-other';
 
@@ -204,8 +185,8 @@ class HoldingsController {
             `;
         }).join('');
 
-        // 3. 移动端现代金融卡片流渲染 (对标 QDII 移动端卡片)
-        const mobileCardsHtml = filtered.map((item, index) => {
+        // 3. 移动端现代金融卡片流渲染 (紧凑精简版)
+        const mobileCardsHtml = managers.map((item, index) => {
             const rank = index + 1;
             const rankBadgeClass = rank === 1 ? 'rank-top1' : rank === 2 ? 'rank-top2' : rank === 3 ? 'rank-top3' : 'rank-other';
 
@@ -215,21 +196,22 @@ class HoldingsController {
 
             const topHolding = item.top_holding;
             const topStr = topHolding ? `${topHolding.symbol} (${topHolding.weight}%)` : '--';
+            const shortInst = (item.institution || '').split('(')[0].trim();
 
             return `
                 <div class="holdings-mcard-item qdii-clickable" data-manager-id="${item.id}">
                     <div class="holdings-mcard-header">
                         <div class="holdings-mcard-left">
                             <span class="rank-badge ${rankBadgeClass}">${rank}</span>
-                            <div>
+                            <div style="min-width: 0;">
                                 <div style="display: flex; align-items: center; gap: 6px;">
                                     <span class="holdings-mcard-title">${item.name}</span>
                                     <span style="font-size: 10px; background: var(--bg-subtle); border: 1px solid var(--border-light); padding: 1px 5px; border-radius: 3px; color: var(--text-secondary);">${item.style_tags ? item.style_tags[0] : item.style}</span>
                                 </div>
-                                <div class="holdings-mcard-inst">${item.institution}</div>
+                                <div class="holdings-mcard-inst">${shortInst}</div>
                             </div>
                         </div>
-                        <span style="font-size: 11px; color: var(--primary); font-weight: 600; display: inline-flex; align-items: center; gap: 2px;">
+                        <span style="font-size: 11px; color: var(--primary); font-weight: 600; display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0;">
                             持仓明细 <i data-lucide="chevron-right" width="12"></i>
                         </span>
                     </div>
@@ -244,12 +226,12 @@ class HoldingsController {
                             <div class="holdings-mcard-lbl">13F披露规模</div>
                         </div>
                         <div class="holdings-mcard-cell">
-                            <div class="holdings-mcard-val" style="font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${topStr}</div>
+                            <div class="holdings-mcard-val" style="font-size: 11px;">${topStr}</div>
                             <div class="holdings-mcard-lbl">第一大重仓</div>
                         </div>
                         <div class="holdings-mcard-cell">
                             <div class="holdings-mcard-val">${item.holding_count}只 / ${item.cr10}%</div>
-                            <div class="holdings-mcard-lbl">持股数 / CR10</div>
+                            <div class="holdings-mcard-lbl">持股 / CR10</div>
                         </div>
                     </div>
                 </div>
@@ -262,9 +244,9 @@ class HoldingsController {
         if (consensus && consensus.length > 0) {
             consensusHtml = `
                 <div class="card consensus-card">
-                    <div class="card-header" style="margin-bottom: 12px;">
+                    <div class="card-header" style="margin-bottom: 10px;">
                         <div class="card-title">
-                            <i data-lucide="compass" width="16"></i>
+                            <i data-lucide="compass" width="15"></i>
                             <span>顶级机构重仓共识 (Whale Consensus)</span>
                         </div>
                         <span style="font-size: 11px; color: var(--text-secondary);">
@@ -300,7 +282,7 @@ class HoldingsController {
             ${benchmarkNotice}
 
             <!-- 桌面端宽屏大表格 -->
-            <div class="card holdings-desktop-only" style="padding: 0; overflow: hidden; margin-bottom: 16px;">
+            <div class="card holdings-desktop-only" style="padding: 0; overflow: hidden; margin-bottom: 14px;">
                 <div class="table-wrapper">
                     <table class="qdii-table holdings-rank-table">
                         <thead>
@@ -323,7 +305,7 @@ class HoldingsController {
             </div>
 
             <!-- 移动端金融卡片流 -->
-            <div class="holdings-mobile-cards-wrapper holdings-mobile-only" style="margin-bottom: 16px;">
+            <div class="holdings-mobile-cards-wrapper holdings-mobile-only" style="margin-bottom: 14px;">
                 ${mobileCardsHtml}
             </div>
 
@@ -369,64 +351,59 @@ class HoldingsController {
         if (!entry) return;
 
         const { manager, holdings = [] } = entry;
+        const shortInst = (manager.institution || '').split('(')[0].trim();
 
         overlay.innerHTML = `
             <div class="qdii-modal-card holdings-modal-card">
-                <div class="qdii-modal-header">
-                    <h3 class="qdii-modal-title">
-                        <i data-lucide="${manager.avatar_icon || 'user'}" width="16"></i>
-                        <span>${manager.name} · ${manager.institution}</span>
-                    </h3>
+                <div class="qdii-modal-header" style="padding: 12px 16px;">
+                    <div style="display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;">
+                        <span style="font-size: 15px; font-weight: 700; color: var(--text-primary); white-space: nowrap;">${manager.name}</span>
+                        <span style="font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${shortInst}</span>
+                    </div>
                     <button class="qdii-modal-close" aria-label="关闭">&times;</button>
                 </div>
 
                 <div class="holdings-modal-meta">
                     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                         <span>规模 <b>${this.formatMoney(manager.total_value)}</b></span>
-                        <span style="color: var(--border-light);">|</span>
+                        <span style="color: var(--border-light);">·</span>
                         <span>CR10 <b>${manager.cr10}%</b></span>
-                        <span style="color: var(--border-light);">|</span>
+                        <span style="color: var(--border-light);">·</span>
                         <span>持股 <b>${manager.holding_count}只</b></span>
-                        <span style="color: var(--border-light);">|</span>
-                        <span>报告期 <b>${manager.filing_date}</b></span>
+                        <span style="color: var(--border-light);">·</span>
+                        <span><b>${manager.filing_date}</b></span>
                     </div>
-                    <span style="font-size: 11px; color: var(--text-secondary);">${manager.style}</span>
                 </div>
 
                 <div class="holdings-modal-scroll">
-                    <table class="qdii-table holdings-table">
+                    <table class="holdings-modal-table">
                         <thead>
-                            <tr>
-                                <th style="width: 38px; text-align: center;">#</th>
-                                <th style="text-align: left;">标的资产</th>
-                                <th style="text-align: right; width: 120px;">持仓市值</th>
-                                <th style="text-align: left; min-width: 120px;">组合权重</th>
-                                <th style="text-align: center; width: 95px;">调仓变动</th>
+                            <tr style="background: var(--bg-body); font-size: 11px; color: var(--text-secondary);">
+                                <th style="width: 24px; text-align: center; padding: 6px 2px;">#</th>
+                                <th style="text-align: left; padding: 6px 6px;">标的资产</th>
+                                <th style="text-align: right; width: 100px; padding: 6px 6px;">市值 / 占比</th>
+                                <th style="text-align: center; width: 62px; padding: 6px 4px;">调仓</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${holdings.map((h, idx) => `
                                 <tr>
-                                    <td style="text-align: center; font-weight: 700; color: ${idx < 3 ? 'var(--primary)' : 'var(--text-secondary)'}; font-family: var(--font-mono); font-size: 12px;">${h.rank || idx + 1}</td>
-                                    <td>
-                                        <div style="display: flex; flex-direction: column; align-items: flex-start;">
-                                            <div style="display: flex; align-items: center; gap: 6px;">
-                                                <span style="font-weight: 700; font-size: 13px; font-family: var(--font-mono);">${h.symbol}</span>
-                                                <span style="font-weight: 600; font-size: 12px; color: var(--text-primary);">${h.name}</span>
-                                            </div>
-                                            <span style="font-size: 10px; color: var(--text-secondary); margin-top: 1px;">${h.sector || '美股通用'} · ${Number(h.shares).toLocaleString()} 股</span>
+                                    <td style="text-align: center; font-weight: 700; color: ${idx < 3 ? 'var(--primary)' : 'var(--text-secondary)'}; font-family: var(--font-mono); font-size: 11px; padding: 7px 2px;">
+                                        ${h.rank || idx + 1}
+                                    </td>
+                                    <td style="padding: 7px 6px;">
+                                        <div style="display: flex; flex-direction: column;">
+                                            <span style="font-weight: 700; font-size: 13px; font-family: var(--font-mono); color: var(--text-primary); line-height: 1.2;">${h.symbol}</span>
+                                            <span style="font-size: 11px; color: var(--text-secondary); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">${h.name}</span>
                                         </div>
                                     </td>
-                                    <td style="text-align: right; font-weight: 700; font-family: var(--font-mono); font-size: 13px;">${this.formatMoney(h.value)}</td>
-                                    <td>
-                                        <div style="display: flex; align-items: center; gap: 6px;">
-                                            <div class="holdings-weight-track">
-                                                <div class="holdings-weight-fill" style="width: ${Math.min(100, Math.max(2, h.weight))}%;"></div>
-                                            </div>
-                                            <span style="font-weight: 700; font-size: 12px; font-family: var(--font-mono);">${h.weight}%</span>
+                                    <td style="text-align: right; padding: 7px 6px;">
+                                        <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                                            <span style="font-family: var(--font-mono); font-weight: 700; font-size: 12px; color: var(--text-primary);">${this.formatMoney(h.value)}</span>
+                                            <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-top: 1px;">${h.weight}%</span>
                                         </div>
                                     </td>
-                                    <td style="text-align: center;">
+                                    <td style="text-align: center; padding: 7px 4px;">
                                         ${this.renderActionBadge(h.action, h.action_label)}
                                     </td>
                                 </tr>

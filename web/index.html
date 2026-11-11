@@ -16,7 +16,7 @@
 
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <script src="js/lucide.min.js?v=33"></script>
-    <link rel="stylesheet" href="css/styles.css?v=75">
+    <link rel="stylesheet" href="css/styles.css?v=76">
 </head>
 
 <body>
@@ -407,15 +407,10 @@
 
         <!-- 顶级机构持仓 (13F Whale Holdings) -->
         <section class="tab-content" id="holdings">
-            <div class="section-header" style="flex-wrap: wrap; gap: 12px;">
-                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: 1;">
+            <div class="section-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
                     <h2 class="section-title" style="margin: 0; white-space: nowrap;">Holdings</h2>
-                    <div class="holdings-filter-group">
-                        <button class="holdings-filter-btn active" data-filter="all">全部舵手</button>
-                        <button class="holdings-filter-btn" data-filter="value">价值派</button>
-                        <button class="holdings-filter-btn" data-filter="macro">宏观对冲</button>
-                        <button class="holdings-filter-btn" data-filter="growth">成长投资</button>
-                    </div>
+                    <span style="font-size: 11px; color: var(--text-secondary); background: var(--bg-subtle); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border-light);">美股 13F 顶级舵手收益榜</span>
                 </div>
                 <button class="refresh-btn" onclick="window.app.refreshCurrentTab(true)" title="点击刷新"><i data-lucide="refresh-cw" width="14"></i> 刷新</button>
             </div>
@@ -457,7 +452,7 @@
     <script src="js/modules/ai.js?v=63"></script>
     <script src="js/modules/gold.js?v=48"></script>
     <script src="js/modules/qdii.js?v=82"></script>
-    <script src="js/modules/holdings.js?v=7"></script>
+    <script src="js/modules/holdings.js?v=8"></script>
     <script src="js/main.js?v=42"></script>
     <script>lucide.createIcons();</script>
 </body>
