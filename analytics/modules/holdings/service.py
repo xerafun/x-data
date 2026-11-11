@@ -32,14 +32,14 @@ class HoldingsService:
 
     @staticmethod
     @cached(
-        "holdings:overview_v5",
+        "holdings:overview_v6",
         ttl=settings.CACHE_TTL.get("market_us", 3600),
         stale_ttl=settings.CACHE_TTL.get("market_us", 3600) * settings.STALE_TTL_RATIO,
         sync_on_cold=True
     )
     def get_overview() -> Dict[str, Any]:
         """
-        获取全量投资人概况看板与顶流共识榜单（聚焦纯正 13F 法定持仓与共识）
+        获取全量投资人概况看板与顶流共识榜单（按近一年表现降序排名，类似 QDII 榜单模式）
         """
         managers_list = []
         consensus_map: Dict[str, Dict[str, Any]] = {}
@@ -50,6 +50,8 @@ class HoldingsService:
                 continue
 
             holdings = data.get("holdings", [])
+            top_holding = holdings[0] if holdings else None
+            top_holding_summary = f"{top_holding.get('symbol')} ({top_holding.get('weight')}%)" if top_holding else "--"
 
             # 统计前 15 大持仓用于共识挖掘
             for h in holdings[:15]:
@@ -82,8 +84,14 @@ class HoldingsService:
                 "cik": meta["cik"],
                 "style": meta["style"],
                 "style_tags": meta["style_tags"],
+                "category": meta.get("category", "all"),
                 "avatar_icon": meta["avatar_icon"],
                 "description": meta["description"],
+                "return_1y": meta.get("return_1y", 0.0),
+                "return_3y": meta.get("return_3y", 0.0),
+                "alpha_1y": meta.get("alpha_1y", 0.0),
+                "top_holding": top_holding,
+                "top_holding_summary": top_holding_summary,
                 "filing_date": data.get("filing_date"),
                 "filing_form": data.get("filing_form"),
                 "accession": data.get("accession"),
@@ -93,6 +101,9 @@ class HoldingsService:
                 "top3_holdings": holdings[:3],
                 "holdings": holdings
             })
+
+        # 按近一年收益表现降序排名
+        managers_list.sort(key=lambda x: x.get("return_1y", 0.0), reverse=True)
 
         # 筛选被 2 家及以上机构共同重仓的标的作为顶流共识
         consensus_list = []
@@ -110,8 +121,14 @@ class HoldingsService:
         # 共识排序：持有机构数降序 -> 合计市值降序
         consensus_list.sort(key=lambda x: (x["holders_count"], x["total_value"]), reverse=True)
 
+        benchmarks = {
+            "SPX": {"name": "标普500 (SPX)", "return_1y": 19.23},
+            "NDX": {"name": "纳斯达克100 (NDX)", "return_1y": 24.69}
+        }
+
         return {
             "managers": managers_list,
+            "benchmarks": benchmarks,
             "consensus": consensus_list[:8],  # 取 Top 8 核心共识股
             "market_time": get_beijing_time().strftime("%Y-%m-%d %H:%M:%S")
         }

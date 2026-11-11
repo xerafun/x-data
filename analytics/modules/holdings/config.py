@@ -5,17 +5,20 @@
 from typing import Dict, Any
 
 TRACKED_MANAGERS: Dict[str, Dict[str, Any]] = {
-    "buffett": {
-        "id": "buffett",
-        "name": "沃伦·巴菲特",
-        "en_name": "Warren Buffett",
-        "institution": "伯克希尔·哈撒韦 (Berkshire Hathaway)",
-        "cik": "0001067983",
-        "style": "价值投资 · 护城河 · 现金奶牛",
-        "style_tags": ["价值投资", "高现金储备", "长跑冠军"],
-        "category": "value",
-        "avatar_icon": "shield",
-        "description": "伯克希尔哈撒韦董事长，长期坚守确定性极高的高 ROE 消费与金融龙头，近期组合持有超3000亿美元现金与短期美债。"
+    "burry": {
+        "id": "burry",
+        "name": "迈克尔·伯里",
+        "en_name": "Michael Burry",
+        "institution": "Scion Asset Management (大空头)",
+        "cik": "0001649339",
+        "style": "周期逆向 · 宏观对冲 · 深度左侧",
+        "style_tags": ["大空头", "逆向交易", "黑天鹅防线"],
+        "category": "macro",
+        "avatar_icon": "target",
+        "description": "电影《大空头》原型，Scion 掌舵人，擅长在市场极度乐观时寻找脆弱漏洞并深度逆向押注。",
+        "return_1y": 38.6,
+        "return_3y": 52.4,
+        "alpha_1y": 19.37,
     },
     "duan": {
         "id": "duan",
@@ -27,7 +30,25 @@ TRACKED_MANAGERS: Dict[str, Dict[str, Any]] = {
         "style_tags": ["商业模式", "买股票就是买公司", "科技核心"],
         "category": "value",
         "avatar_icon": "gem",
-        "description": "华人传奇投资人，秉持'大道无形'价值投资理念，长期重仓苹果、伯克希尔、拼多多、腾讯及顶尖科技龙头。"
+        "description": "华人传奇投资人，秉持'大道无形'价值投资理念，长期重仓苹果、伯克希尔、拼多多、腾讯及顶尖科技龙头。",
+        "return_1y": 28.4,
+        "return_3y": 46.8,
+        "alpha_1y": 9.17,
+    },
+    "buffett": {
+        "id": "buffett",
+        "name": "沃伦·巴菲特",
+        "en_name": "Warren Buffett",
+        "institution": "伯克希尔·哈撒韦 (Berkshire Hathaway)",
+        "cik": "0001067983",
+        "style": "价值投资 · 护城河 · 现金奶牛",
+        "style_tags": ["价值投资", "高现金储备", "长跑冠军"],
+        "category": "value",
+        "avatar_icon": "shield",
+        "description": "伯克希尔哈撒韦董事长，长期坚守确定性极高的高 ROE 消费与金融龙头，近期组合持有超3000亿美元现金与短期美债。",
+        "return_1y": 23.8,
+        "return_3y": 41.2,
+        "alpha_1y": 4.57,
     },
     "lilu": {
         "id": "lilu",
@@ -39,19 +60,10 @@ TRACKED_MANAGERS: Dict[str, Dict[str, Any]] = {
         "style_tags": ["查理·芒格", "深度研究", "极度聚焦"],
         "category": "value",
         "avatar_icon": "award",
-        "description": "查理·芒格家族资产真正管理者，秉承格雷厄姆与芒格正统价值投资，极度专注于少而精的顶级复利标的。"
-    },
-    "burry": {
-        "id": "burry",
-        "name": "迈克尔·伯里",
-        "en_name": "Michael Burry",
-        "institution": "Scion Asset Management (大空头)",
-        "cik": "0001649339",
-        "style": "周期逆向 · 宏观对冲 · 深度左侧",
-        "style_tags": ["大空头", "逆向交易", "黑天鹅防线"],
-        "category": "macro",
-        "avatar_icon": "target",
-        "description": "电影《大空头》原型，Scion 掌舵人，擅长在市场极度乐观时寻找脆弱漏洞并深度逆向押注。"
+        "description": "查理·芒格家族资产真正管理者，秉承格雷厄姆与芒格正统价值投资，极度专注于少而精的顶级复利标的。",
+        "return_1y": 19.2,
+        "return_3y": 35.6,
+        "alpha_1y": -0.03,
     },
     "dalio": {
         "id": "dalio",
@@ -63,7 +75,10 @@ TRACKED_MANAGERS: Dict[str, Dict[str, Any]] = {
         "style_tags": ["全天候策略", "宏观对冲", "分散平衡"],
         "category": "macro",
         "avatar_icon": "layers",
-        "description": "全球最大对冲基金桥水联合创始人，开创风险平价与全天候策略，广泛配置宽基指数与科技龙头。"
+        "description": "全球最大对冲基金桥水联合创始人，开创风险平价与全天候策略，广泛配置宽基指数与科技龙头。",
+        "return_1y": 14.6,
+        "return_3y": 22.8,
+        "alpha_1y": -4.63,
     },
     "hillhouse": {
         "id": "hillhouse",
@@ -75,6 +90,9 @@ TRACKED_MANAGERS: Dict[str, Dict[str, Any]] = {
         "style_tags": ["长青资本", "生命科学", "中概核心"],
         "category": "growth",
         "avatar_icon": "compass",
-        "description": "亚洲顶级投资机构旗下美股持仓主体，重仓生命科学创新药、中概互联网巨头与先进科技。"
+        "description": "亚洲顶级投资机构旗下美股持仓主体，重仓生命科学创新药、中概互联网巨头与先进科技。",
+        "return_1y": 11.5,
+        "return_3y": -8.2,
+        "alpha_1y": -7.73,
     }
 }
