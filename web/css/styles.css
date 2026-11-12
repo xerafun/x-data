@@ -1034,6 +1034,20 @@ footer a:hover {
     background: rgba(0, 0, 0, 0.04);
 }
 
+.filing-info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    color: var(--text-secondary);
+    cursor: help;
+    transition: color 0.15s ease;
+}
+
+.filing-info-icon:hover {
+    color: var(--primary);
+}
+
 @media (max-width: 640px) {
     .info-btn {
         min-width: 28px;

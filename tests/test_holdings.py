@@ -69,6 +69,26 @@ class TestHoldingsModule(unittest.TestCase):
         self.assertEqual(top1["symbol"], "AAPL")
         self.assertGreater(top1["weight"], 30.0)
 
+    def test_manager_detail_ackman_and_wood(self):
+        """Verify detail for Bill Ackman and Cathie Wood"""
+        # Bill Ackman
+        ackman_detail = HoldingsService.get_manager_detail("ackman")
+        self.assertIsNotNone(ackman_detail)
+        self.assertEqual(ackman_detail["status"], "ok")
+        self.assertEqual(ackman_detail["data"]["manager"]["name"], "比尔·阿克曼")
+        ackman_holdings = ackman_detail["data"]["holdings"]
+        self.assertEqual(len(ackman_holdings), 13)
+        self.assertEqual(ackman_holdings[0]["symbol"], "UBER")
+
+        # Cathie Wood
+        wood_detail = HoldingsService.get_manager_detail("wood")
+        self.assertIsNotNone(wood_detail)
+        self.assertEqual(wood_detail["status"], "ok")
+        self.assertEqual(wood_detail["data"]["manager"]["name"], "木头姐")
+        wood_holdings = wood_detail["data"]["holdings"]
+        self.assertGreaterEqual(len(wood_holdings), 10)
+        self.assertEqual(wood_holdings[0]["symbol"], "TSLA")
+
 
 if __name__ == "__main__":
     unittest.main()
