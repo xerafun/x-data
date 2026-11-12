@@ -19,6 +19,7 @@ TRACKED_MANAGERS: Dict[str, Dict[str, Any]] = {
         "return_1y": 38.6,
         "return_3y": 52.4,
         "alpha_1y": 19.37,
+        "filing_note": "SEC最新在册 (2026未达$1亿门槛或清仓)",
     },
     "duan": {
         "id": "duan",

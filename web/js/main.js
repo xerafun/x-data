@@ -39,8 +39,8 @@ class App {
             'gold': 'Gold',
             'qdii': 'QDII',
         };
-        const sectionTitle = titles[tabId] || 'X-Data';
-        return sectionTitle === 'X-Data' ? sectionTitle : `${sectionTitle}｜X-Data`;
+        const sectionTitle = titles[tabId];
+        return sectionTitle ? `X-Data | ${sectionTitle}` : 'X-Data';
     }
 
     updatePageTitle(tabId) {

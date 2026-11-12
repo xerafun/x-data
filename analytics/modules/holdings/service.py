@@ -93,6 +93,7 @@ class HoldingsService:
                 "top_holding": top_holding,
                 "top_holding_summary": top_holding_summary,
                 "filing_date": data.get("filing_date"),
+                "filing_note": meta.get("filing_note"),
                 "filing_form": data.get("filing_form"),
                 "accession": data.get("accession"),
                 "total_value": data.get("total_value", 0),

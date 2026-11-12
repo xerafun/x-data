@@ -204,7 +204,14 @@ class HoldingsController {
                         </div>
                     </td>
                     <td style="text-align: center; width: 95px; font-size: 11px; font-family: var(--font-mono); color: var(--text-secondary);">
-                        ${item.filing_date || '--'}
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;">
+                            <span>${item.filing_date || '--'}</span>
+                            ${(item.filing_note || item.id === 'burry') ? `
+                                <span title="SEC官方最新在册记录。该机构2026年未达1亿美元法定申报门槛或已清仓美股多头" style="display: inline-flex; align-items: center; gap: 2px; font-size: 9px; line-height: 1.1; padding: 2px 4px; border-radius: 3px; background: rgba(245, 158, 11, 0.12); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.25); cursor: help; white-space: nowrap; font-family: var(--font-sans, sans-serif);">
+                                    最新在册 ℹ️
+                                </span>
+                            ` : ''}
+                        </div>
                     </td>
                     <td style="text-align: center; width: 95px;">
                         <button class="holdings-view-btn" data-manager-id="${item.id}">
@@ -351,9 +358,7 @@ class HoldingsController {
                                 <button class="info-btn" id="info-holdings-comparison" title="说明"><i data-lucide="help-circle" width="14"></i></button>
                             </div>
                             <div class="period-pills" id="holdings-period-pills">
-                                <button class="period-pill" data-period="1m">近1月</button>
-                                <button class="period-pill" data-period="3m">近3月</button>
-                                <button class="period-pill" data-period="6m">近6月</button>
+                                <button class="period-pill" data-period="6m">近半年</button>
                                 <button class="period-pill" data-period="ytd">今年以来</button>
                                 <button class="period-pill active" data-period="1y">近1年</button>
                                 <button class="period-pill" data-period="3y">近3年</button>
@@ -652,6 +657,11 @@ class HoldingsController {
                         <span>持股 <b>${manager.holding_count}只</b></span>
                         <span style="color: var(--border-light);">·</span>
                         <span><b>${manager.filing_date}</b></span>
+                        ${(manager.filing_note || manager.id === 'burry') ? `
+                            <span style="font-size: 10px; padding: 1px 6px; border-radius: 3px; background: rgba(245, 158, 11, 0.12); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.25); font-family: var(--font-sans, sans-serif);" title="SEC官方最新在册记录。2026年未提交13F（可能持仓低于1亿美元披露门槛或清仓）">
+                                SEC最新在册 (2026未达$1亿门槛或清仓)
+                            </span>
+                        ` : ''}
                     </div>
                 </div>
 
