@@ -106,6 +106,9 @@ class HoldingsController {
         this.selectedManagers = new Set(["burry", "duan", "wood", "buffett", "SP500"]);
         this.comparisonRawData = null;
         window.holdingsController = this;
+        if (typeof document !== 'undefined') {
+            this.bindOverviewInfoEvent();
+        }
     }
 
     async loadData() {
@@ -537,6 +540,8 @@ class HoldingsController {
             };
         });
 
+        this.bindOverviewInfoEvent();
+
         if (window.lucide) {
             lucide.createIcons();
         }
@@ -825,6 +830,7 @@ class HoldingsController {
 
         overlay.classList.add('active');
         document.body.classList.add('modal-open');
+
         if (window.lucide) {
             lucide.createIcons();
         }
@@ -1105,6 +1111,29 @@ class HoldingsController {
 · 精细缩放：按住 Ctrl（Mac 用户按 Command ⌘）滚动滚轮即可局部放大缩小图表，亦可直接拖拽底部时间轴滑块。
 
 免责声明：本数据仅供研究参考，基于 SEC 13F-HR 法定持仓加权回溯，不构成任何投资建议。`);
+        }
+    }
+
+    bindOverviewInfoEvent() {
+        const overviewInfoBtn = document.getElementById("info-holdings-overview");
+        if (overviewInfoBtn) {
+            overviewInfoBtn.style.display = "inline-flex";
+            overviewInfoBtn.onclick = () => utils.showInfoModal("美股 13F 顶级舵手收益榜说明",
+`1. 什么是 13F？
+· 机构持仓底牌：依据美国《1934年证券交易法》第13条(f)款设立的法定季度报告；
+· 强制披露标准：所有管理美股资产规模超过 1 亿美元的机构或投资人（包括对冲基金、家族办公室、主权财富基金等），必须在每季度结束后的 45 天内向美国证券交易委员会（SEC）公开全部美股多头持仓明细；
+· 法律效力极高：申报数据具有严格法律责任，隐瞒或作假属于联邦证券欺诈，是全球最具权威性的大佬“明牌”。
+
+2. 顶级舵手与收益榜
+· 顶级舵手（Whales）：指掌管巨额资本且具有全球宏观与科技风向标意义的顶尖投资人与机构（涵盖巴菲特、段永平、伯里、阿克曼、木头姐等各流派代表）；
+· 收益表现核算：系统依据各投资人最新在册的法定 13F-HR 持仓权重，每日动态核算组合的综合净值与累计收益率，形成客观的超额 Alpha 创造能力排行榜；
+· 顶流共识挖掘：当多家不同流派的顶尖机构同时重仓同一家公司时，系统自动发掘出最具资金确定性的“重仓共识榜单”。
+
+3. 申报数据特性提示
+· 季度时滞性：13F 申报存在最多 45 天披露延迟，反映季度末真实静态底牌；
+· 披露口径：按监管规则仅强制披露美股多头股票、ETF 及可转债，不包含纯空头头寸及非美本土资产。
+
+免责声明：本模块数据仅供研究参考，基于 SEC 官方 13F-HR 法定报告回溯，不构成任何投资建议。`);
         }
     }
 
