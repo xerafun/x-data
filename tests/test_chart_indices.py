@@ -12,8 +12,8 @@ from analytics.modules.chart.indices_comparison import (
 
 
 def test_index_configs_structure():
-    """验证 16 大核心指数与大类资产的配置项完整性"""
-    assert len(INDEX_CONFIGS) == 16
+    """验证 17 大核心指数与大类资产的配置项完整性"""
+    assert len(INDEX_CONFIGS) == 17
     codes = set()
     default_selected_count = 0
     for cfg in INDEX_CONFIGS:
@@ -29,13 +29,14 @@ def test_index_configs_structure():
         if cfg["default_selected"]:
             default_selected_count += 1
 
-    assert len(codes) == 16
+    assert len(codes) == 17
     # 默认选中 4 大核心基准 (NDX, SH000001, HSTECH, XAU)
     assert default_selected_count == 4
     assert "NDX" in codes
     assert "SH000001" in codes
     assert "HSTECH" in codes
     assert "XAU" in codes
+    assert "VNINDEX" in codes
 
     default_codes = {c["code"] for c in INDEX_CONFIGS if c["default_selected"]}
     assert default_codes == {"NDX", "SH000001", "HSTECH", "XAU"}
@@ -152,6 +153,27 @@ def test_fetch_gold_index(mock_akshare):
     assert res["default_selected"] is True
     assert "returns" in res
     assert res["returns"]["1D"] == round((2690.0 - 2680.0) / 2680.0 * 100, 2)
+
+
+@patch("analytics.modules.chart.indices_comparison.fetch_eastmoney_index_kline")
+def test_fetch_vietnam_index(mock_em):
+    """测试越南胡志明指数的数据抓取与结构"""
+    dates = ["2024-09-28", "2024-09-29", "2024-09-30", "2024-10-01", "2024-10-02"]
+    closes = [1280.0, 1285.0, 1290.0, 1295.0, 1300.0]
+    df = pd.DataFrame({"date": dates, "close": closes})
+    mock_em.return_value = df
+
+    cfg = [c for c in INDEX_CONFIGS if c["code"] == "VNINDEX"][0]
+    assert cfg["name"] == "越南胡志明"
+    assert cfg["region"] == "VN"
+    assert cfg["color"].upper() in ["#10B981", "#059669"]
+    res = fetch_single_index(cfg, cutoff_date="2024-01-01")
+    assert res is not None
+    assert res["code"] == "VNINDEX"
+    assert res["name"] == "越南胡志明"
+    assert res["latest_close"] == 1300.0
+    assert res["latest_date"] == "2024-10-02"
+    assert res["returns"]["1D"] == round((1300.0 - 1295.0) / 1295.0 * 100, 2)
 
 
 

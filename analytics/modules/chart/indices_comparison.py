@@ -9,12 +9,13 @@ import pytz
 import numpy as np
 import pandas as pd
 import akshare as ak
+import requests
 
 from ...core.cache import cached
 from ...core.utils import safe_float, akshare_call_with_retry
 from ...core.logger import logger
 
-# 16 大核心指数与资产元数据配置
+# 17 大核心指数与资产元数据配置
 INDEX_CONFIGS = [
     {
         "code": "NDX",
@@ -192,6 +193,17 @@ INDEX_CONFIGS = [
         "type": "global",
         "symbol": "印度孟买SENSEX指数",
     },
+    {
+        "code": "VNINDEX",
+        "name": "越南胡志明",
+        "full_name": "越南胡志明综合指数",
+        "region": "VN",
+        "flag": "",
+        "color": "#10B981",  # 新兴东盟-翡翠绿
+        "default_selected": False,
+        "type": "em",
+        "symbol": "100.VNINDEX",
+    },
 ]
 
 
@@ -200,6 +212,47 @@ def _calc_return_pct(current_val: float, base_val: float) -> Optional[float]:
     if base_val is None or base_val <= 0:
         return None
     return round((current_val - base_val) / base_val * 100, 2)
+
+
+def fetch_eastmoney_index_kline(secid: str = "100.VNINDEX") -> Optional[pd.DataFrame]:
+    """
+    抓取东方财富全球大盘指数历史日线收盘价数据 (支持 VNINDEX 等)
+    """
+    subdomains = ["push2his", "17.push2his", "82.push2his"]
+    for sub in subdomains:
+        url = f"https://{sub}.eastmoney.com/api/qt/stock/kline/get"
+        params = {
+            "secid": secid,
+            "klt": "101",
+            "fqt": "1",
+            "lmt": "1500",  # 抓取近 5-6 年历史数据，充裕满足 3Y 计算
+            "end": "20500000",
+            "iscca": "1",
+            "fields1": "f1,f2,f3,f4,f5,f6,f7,f8",
+            "fields2": "f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61,f62,f63,f64",
+            "ut": "f057cbcbce2a86e2866ab8877db1d059",
+            "forcect": "1",
+        }
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Referer": "https://quote.eastmoney.com/",
+        }
+        try:
+            r = requests.get(url, params=params, headers=headers, timeout=10)
+            if r.status_code == 200:
+                data = r.json()
+                if data and data.get("data") and data["data"].get("klines"):
+                    rows = []
+                    for item in data["data"]["klines"]:
+                        parts = item.split(",")
+                        if len(parts) >= 3:
+                            rows.append({"date": parts[0], "close": float(parts[2])})
+                    if rows:
+                        return pd.DataFrame(rows)
+        except Exception as e:
+            logger.warning(f"[IndicesComparison] 东方财富接口 {sub} 获取 {secid} 失败: {e}")
+            continue
+    return None
 
 
 def fetch_single_index(cfg: Dict[str, Any], cutoff_date: str) -> Optional[Dict[str, Any]]:
@@ -229,6 +282,8 @@ def fetch_single_index(cfg: Dict[str, Any], cutoff_date: str) -> Optional[Dict[s
             df = akshare_call_with_retry(
                 ak.stock_zh_index_daily, symbol=symbol, max_retries=2, use_throttle=False
             )
+        elif source_type == "em":
+            df = fetch_eastmoney_index_kline(secid=symbol)
         elif source_type == "gold":
             try:
                 df = akshare_call_with_retry(
@@ -340,10 +395,10 @@ def fetch_single_index(cfg: Dict[str, Any], cutoff_date: str) -> Optional[Dict[s
         return None
 
 
-@cached("chart:indices_comparison:v5", ttl=1800, stale_ttl=86400, sync_on_cold=True)
+@cached("chart:indices_comparison:v6", ttl=1800, stale_ttl=86400, sync_on_cold=True)
 def get_indices_comparison() -> Dict[str, Any]:
     """
-    并发抓取全球 16 大核心指数与大类资产历史数据，并返回归一化比对所需数据源
+    并发抓取全球 17 大核心指数与大类资产历史数据，并返回归一化比对所需数据源
     """
     # 截取近 3 年多一点 (3年 + 1个月缓冲)
     cutoff_date = (datetime.now() - timedelta(days=365 * 3 + 35)).strftime("%Y-%m-%d")
