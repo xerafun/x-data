@@ -1,0 +1,47 @@
+# robots.txt for https://data.xerafun.com
+
+# 通用爬虫规则
+User-agent: *
+Allow: /
+Allow: /about.html
+Allow: /privacy.html
+Allow: /sitemap.xml
+Allow: /llms.txt
+Disallow: /api/
+
+# AI 搜索与大模型爬虫规则 (Generative Engine Optimization / GEO)
+# 允许主流 AI 爬虫抓取全景内容与 llms.txt 指引，禁止频繁调用内部动态计算 API
+User-agent: GPTBot
+Allow: /
+Allow: /llms.txt
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Allow: /llms.txt
+Disallow: /api/
+
+User-agent: ClaudeBot
+Allow: /
+Allow: /llms.txt
+Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /
+Allow: /llms.txt
+Disallow: /api/
+
+User-agent: cohere-ai
+Allow: /
+Allow: /llms.txt
+Disallow: /api/
+
+User-agent: Applebot-Extended
+Allow: /
+Allow: /llms.txt
+Disallow: /api/
+
+# Sitemaps & LLMs context
+Sitemap: https://data.xerafun.com/sitemap.xml
+# llms.txt standard: https://llmstxt.org
+# LLM Context: https://data.xerafun.com/llms.txt

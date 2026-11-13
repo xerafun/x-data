@@ -298,6 +298,8 @@ class CustomStaticFiles(StaticFiles):
         response = await super().get_response(path, scope)
         if path.endswith((".js", ".css")):
             response.headers["Cache-Control"] = "public, max-age=86400, must-revalidate"
+        elif path.endswith((".xml", ".txt")):
+            response.headers["Cache-Control"] = "public, max-age=3600"
         elif path.endswith(".html"):
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
             response.headers["Pragma"] = "no-cache"

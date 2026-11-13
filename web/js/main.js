@@ -32,15 +32,15 @@ class App {
 
     getPageTitle(tabId) {
         const titles = {
-            'holdings': 'Holdings',
-            'chart': 'Chart',
-            'global': 'Global',
-            'ai': 'AI',
-            'gold': 'Gold',
-            'qdii': 'QDII',
+            'holdings': '美股 13F 顶级舵手收益榜与重仓透视',
+            'chart': '大类资产历史走势对比与指数估值温度计',
+            'global': '全球宏观市场与亚太欧美股指看板',
+            'ai': 'AI 产业链全景热力与产业周期评估',
+            'gold': '贵金属现货与金银比价追踪',
+            'qdii': '跨境 QDII 基金折溢价与重仓穿透',
         };
         const sectionTitle = titles[tabId];
-        return sectionTitle ? `X-Data | ${sectionTitle}` : 'X-Data';
+        return sectionTitle ? `X-Data | ${sectionTitle}` : 'X-Data | 全球宏观资产与科技产业周期量化看板';
     }
 
     updatePageTitle(tabId) {
