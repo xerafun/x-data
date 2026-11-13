@@ -497,7 +497,7 @@ class App {
 
         const timeStr = displayTime.toLocaleTimeString('zh-CN', { hour12: false });
 
-        if (timeElement) timeElement.textContent = `Updated: ${timeStr}`;
+        if (timeElement) timeElement.textContent = `XeraFun: ${timeStr}`;
 
         this.lastUpdateTime = displayTime;
     }
