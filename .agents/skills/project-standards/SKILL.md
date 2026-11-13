@@ -69,7 +69,8 @@ element.textContent = price != null ? formatNumber(price) : '--';
 ```
 
 ### Data Source Requirements
-- **STRICT SOURCE POLICY**: All financial data MUST be fetched primarily via the **AkShare** library.
+- **STRICT SOURCE POLICY**: Financial quotes and indicators MUST be fetched primarily via the **AkShare** library.
+- **STATUTORY FILINGS (SEC Form 13F-HR)**: Institutional holdings and whale investor tracking MUST be sourced from official SEC EDGAR Form 13F-HR quarterly filings. Verified quarterly filing datasets parsed from official SEC disclosures represent authoritative real data (NOT ungrounded mock data).
 - **EXCEPTION FOR BLOCKED APIS**: If an AkShare interface is strictly rate-limited or permanently blocked (e.g., US market spot data), direct HTTP requests to public JSON APIs (like EastMoney Push2 or Sina) are **PERMITTED** as a fallback, provided they are encapsulated within the `analytics/core/` infrastructure layer.
 - **FORBIDDEN**: Direct web HTML scraping, or reverse-engineering authenticated/private APIs.
 - If AkShare does not provide specific data, you MUST:

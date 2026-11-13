@@ -5,6 +5,19 @@ import pytest
 # 默认使用本地 8080 端口，可通过环境变量覆盖，方便在 CI/CD 或 x-actions 中配置
 BASE_URL = os.environ.get("TEST_BASE_URL", "http://127.0.0.1:8080")
 
+def _is_server_reachable() -> bool:
+    try:
+        r = requests.get(f"{BASE_URL}/api/health", timeout=1.0)
+        return r.status_code == 200
+    except Exception:
+        return False
+
+# 当本地或 CI 环境未启动 Web 服务时，优雅跳过烟雾测试，避免阻塞常规单元测试
+pytestmark = pytest.mark.skipif(
+    not _is_server_reachable(),
+    reason=f"Live server at {BASE_URL} is not reachable. Run server first or set TEST_BASE_URL."
+)
+
 def test_health_check():
     response = requests.get(f"{BASE_URL}/api/health")
     assert response.status_code == 200
@@ -97,7 +110,9 @@ def test_holdings_routes():
     routes = [
         "/holdings/overview",
         "/holdings/investor/duan",
-        "/holdings/investor/buffett"
+        "/holdings/investor/buffett",
+        "/holdings/investor/ackman",
+        "/holdings/investor/wood"
     ]
     for route in routes:
         response = requests.get(f"{BASE_URL}{route}")

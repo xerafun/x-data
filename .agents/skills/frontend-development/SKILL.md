@@ -19,12 +19,16 @@ description: "⚠️ MANDATORY: Read before modifying ANY .js/.html/.css files. 
 - **Desktop (>= 1024px)**: Expanded multi-column grid (`display: grid` with `auto-fit` / `minmax`).
 
 ### 2.2 Color Tokens & Market Conventions
-| Market Context | Up / Positive | Down / Negative | CSS Classes |
-|:---------------|:--------------|:----------------|:------------|
-| **CN / HK / Metals / Crypto** | **Red** 🔴 (`#ef4444` / `#dc2626`) | **Green** 🟢 (`#22c55e` / `#16a34a`) | `.text-up` / `.text-down` |
-| **US / Western Markets** | **Green** 🟢 (`#22c55e` / `#16a34a`) | **Red** 🔴 (`#ef4444` / `#dc2626`) | `.text-up-us` / `.text-down-us` |
+The project centralizes color tokens via `web/js/config.js` (`APP_CONFIG`):
+- **Central Theme Controller**: `APP_CONFIG.colorMode` defaults to `'red-up-green-down'` (Chinese investor convention across all tabs: Holdings, Chart, Global, AI, Gold, QDII), dynamically injecting CSS variables `--color-up`, `--color-down`, and `--color-flat` into `:root`.
+- **Dynamic Helper Functions**: Prefer `APP_CONFIG.getChangeClass(val)` and `APP_CONFIG.getChangeColor(val)` for safe, theme-aware color mapping rather than hardcoding hex values in JS.
 
-- **Chart Palette**: ECharts indicators and visual gauges must adhere to the project palette `#16a34a` (green) and `#dc2626` (red).
+| Color Mode | Up / Positive | Down / Negative | CSS Tokens / Classes |
+|:-----------|:--------------|:----------------|:---------------------|
+| **Default (`red-up-green-down`)** | **Red** 🔴 (`#ef4444` / `#dc2626`) | **Green** 🟢 (`#22c55e` / `#16a34a`) | `.text-up`, `.val-up`, `var(--color-up)` |
+| **International (`green-up-red-down`)** | **Green** 🟢 (`#22c55e` / `#16a34a`) | **Red** 🔴 (`#ef4444` / `#dc2626`) | Controlled via `APP_CONFIG.colorMode` |
+
+- **Chart Palette**: ECharts indicators and visual gauges must adhere to `APP_CONFIG.getColors()` or project palette tokens `#16a34a` and `#dc2626`.
 
 ---
 
