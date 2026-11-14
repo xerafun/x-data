@@ -6,7 +6,8 @@
 """
 
 from typing import Dict, Any, List, Optional, Tuple
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import logging
 import requests
 import re
 import bs4
@@ -17,6 +18,8 @@ import akshare as ak
 from ..core.cache import cached, cache
 from ..core.config import settings
 from ..core.utils import akshare_call_with_retry, safe_float, fetch_url_via_proxy, get_beijing_time
+
+logger = logging.getLogger(__name__)
 
 # 目标 QDII 基金基础元数据注册表 (纳斯达克100 与 标普500 场外 A类基金，提供基准行情与后备数据)
 QDII_FUND_METADATA: List[Dict[str, Any]] = [
@@ -904,14 +907,55 @@ def fetch_sina_fund_navs(codes: List[str]) -> Dict[str, Dict[str, Any]]:
                         except (ValueError, IndexError):
                             pass
 
-        # 3. 对缺失官方确认净值的标的，严格使用 Cloudflare Worker 代理兜底补充
-        for c in codes:
-            if c not in res or not res[c].get("official_nav"):
-                em_info = fetch_eastmoney_nav_fallback(c)
-                if em_info:
+        # 3. 天天基金/蚂蚁财富双轨并发收敛：
+        # 每晚 19:30~23:30 基金公司在天天基金、支付宝等代销渠道最先直报官方正式净值，新浪财经等门户常有 1~2 小时延迟。
+        # 此处使用线程池全量并发拉取天天基金官方净值，严格对比日期：
+        # - 若天天基金净值日期严格更新 (em_date > sina_date) 或新浪缺失，立即采用天天基金最新确认净值
+        # - 若官方最新确认净值已更新，坚决抑制作废落后于确认日的盘中估值 (est_date <= em_date)，消除时效与数值差异
+        def _fetch_em(c: str) -> Tuple[str, Optional[Dict[str, Any]]]:
+            return c, fetch_eastmoney_nav_fallback(c)
+
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            future_to_code = {executor.submit(_fetch_em, c): c for c in codes}
+            for fut in as_completed(future_to_code):
+                try:
+                    c, em_info = fut.result()
+                    if not em_info:
+                        continue
                     if c not in res:
                         res[c] = {}
-                    res[c].update(em_info)
+                        res[c].update(em_info)
+                        continue
+
+                    sina_date = res[c].get("official_nav_date")
+                    em_date = em_info.get("official_nav_date")
+
+                    # 判定天天基金是否拥有更新的官方净值
+                    is_em_newer = False
+                    if not res[c].get("official_nav") or not sina_date or sina_date == "最新披露":
+                        is_em_newer = True
+                    elif em_date and em_date > sina_date:
+                        is_em_newer = True
+
+                    if is_em_newer:
+                        res[c]["official_nav"] = em_info["official_nav"]
+                        res[c]["official_nav_date"] = em_info["official_nav_date"]
+                        res[c]["nav"] = em_info["nav"]
+                        res[c]["nav_date"] = em_info["nav_date"]
+
+                    # 检查是否需要抑制历史盘中估值：
+                    # 若当前生效的 official_nav_date >= 估值日期，说明官方正式净值已披露，盘中估值必须作废！
+                    cur_official_date = res[c].get("official_nav_date")
+                    est_date = res[c].get("estimated_date") or res[c].get("source_estimated_date")
+                    if cur_official_date and cur_official_date != "最新披露" and est_date and est_date <= cur_official_date:
+                        res[c]["estimated_nav"] = None
+                        res[c]["estimated_time"] = None
+                        res[c]["estimated_change_pct"] = None
+                        res[c]["estimated_date"] = None
+                        res[c]["is_estimated"] = False
+                        res[c]["estimate_source"] = None
+                except Exception as ex:
+                    logger.debug(f"Merge Eastmoney NAV failed for fund: {ex}")
     except Exception as e:
         print(f"⚠️ 新浪基金行情抓取跳过: {e}")
     return res
@@ -1560,11 +1604,37 @@ def get_cn_holiday_info(target_date: Optional[date] = None) -> Dict[str, Any]:
     }
 
 
-@cached("qdii:passive_funds_v57", ttl=86400, stale_ttl=86400 * 7, sync_on_cold=True)
+def calculate_qdii_dynamic_ttl(target_dt: Optional[datetime] = None) -> Tuple[int, str]:
+    """根据北京时间计算 QDII 数据动态缓存 TTL 与策略说明
+
+    - 晚间公募基金净值密集披露高峰 (工作日 19:30~23:45)：900s (15分钟)
+    - 日间交易时段 (工作日 09:15~15:30)：1800s (30分钟)
+    - 其他休市/非高峰时段及周末：7200s (2小时)
+    """
+    if target_dt is None:
+        target_dt = get_beijing_time()
+    weekday = target_dt.weekday()  # 0=Mon, 4=Fri, 5=Sat, 6=Sun
+    total_minutes = target_dt.hour * 60 + target_dt.minute
+
+    if weekday < 5:  # 工作日
+        if 19 * 60 + 30 <= total_minutes <= 23 * 60 + 45:
+            return 900, "evening_peak (15m dynamic cache)"
+        elif 9 * 60 + 15 <= total_minutes <= 15 * 60 + 30:
+            return 1800, "trading_hours (30m dynamic cache)"
+        else:
+            return 7200, "off_hours (2h dynamic cache)"
+    else:
+        return 7200, "weekend (2h dynamic cache)"
+
+
+@cached("qdii:passive_funds_v58", ttl=1800, stale_ttl=86400 * 3, sync_on_cold=True)
 def get_qdii_passive_funds() -> Dict[str, Any]:
     """获取国内纳斯达克100 & 标普500 场外被动 QDII A类基金数据列表
 
-    数据一天刷新一次 (86400s)。包含标的指数原生收益率对标、实时排行、官方净值与盘中估值、综合费率、最大回撤、年化波动率与资产配置。
+    采用动态 TTL 与天天基金/新浪双轨收敛策略：
+    - 晚间净值披露高峰期 (19:30~23:45 工作日)：15分钟动态缓存，快速收敛基金公司最新披露确认净值
+    - 交易时段 (09:15~15:30 工作日)：30分钟动态缓存，保持实时盘中估值有效
+    - 其他休市时段/周末：2小时动态缓存
     """
     rank_map: Dict[str, Dict[str, Any]] = {}
     target_codes = [item["code"] for item in QDII_FUND_METADATA]
@@ -1866,14 +1936,18 @@ def get_qdii_passive_funds() -> Dict[str, Any]:
 
     holiday_info = get_cn_holiday_info()
 
+    now_bj = get_beijing_time()
+    dynamic_ttl, strategy_desc = calculate_qdii_dynamic_ttl(now_bj)
+
     return {
         "status": "ok",
         "count": len(funds_list),
         "benchmarks": benchmarks,
         "funds": funds_list,
         "holiday_info": holiday_info,
-        "update_time": get_beijing_time().strftime("%Y-%m-%d %H:%M:%S"),
-        "update_strategy": "daily (24h cache)"
+        "update_time": now_bj.strftime("%Y-%m-%d %H:%M:%S"),
+        "update_strategy": strategy_desc,
+        "_cache_ttl": dynamic_ttl,
     }
 
 

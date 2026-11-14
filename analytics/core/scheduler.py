@@ -564,6 +564,35 @@ def setup_default_jobs():
     )
 
     # =========================================================================
+    # QDII 基金专属保鲜任务 (匹配晚间披露高峰与天天基金/支付宝时效)
+    # =========================================================================
+    def warmup_qdii_job():
+        logger.info("执行 QDII 基金净值与估值保鲜预热...")
+        from ..modules.qdii import get_qdii_passive_funds
+        warmup_cache(get_qdii_passive_funds)
+
+    # 1. 晚间 19 点起跑任务 (19:30, 19:45 迎战首批公募基金披露)
+    scheduler.add_cron_job(
+        job_id="warmup:qdii:evening_19",
+        func=warmup_qdii_job,
+        cron_expr="30,45 19 * * 1-5",
+    )
+
+    # 2. 晚间密集披露高峰 (20:00 - 23:45 每 15 分钟轮询，快速收敛最新确认净值)
+    scheduler.add_cron_job(
+        job_id="warmup:qdii:evening_peak",
+        func=warmup_qdii_job,
+        cron_expr="*/15 20-23 * * 1-5",
+    )
+
+    # 3. 日间核心交易时段保鲜 (10:30, 14:00, 16:00 刷新估值与行情)
+    scheduler.add_cron_job(
+        job_id="warmup:qdii:daytime",
+        func=warmup_qdii_job,
+        cron_expr="30 10,14,16 * * 1-5",
+    )
+
+    # =========================================================================
     # 数据库持久化任务
     # =========================================================================
     

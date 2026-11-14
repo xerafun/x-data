@@ -359,7 +359,7 @@ def cached(key_prefix: str, ttl: int = 60, stale_ttl: Optional[int] = None, sync
         def wrapper(*args, **kwargs):
             # 提取 force_refresh 参数，从 kwargs 中移除以免影响缓存 key 或函数调用
             # 优先检查 kwargs，其次检查 contextvars (通过 Middleware 注入)
-            force_refresh = kwargs.pop("_refresh", False) or request_refresh_var.get()
+            force_refresh = kwargs.pop("_refresh", False) or kwargs.pop("force_refresh", False) or request_refresh_var.get()
 
             # 1. 生成缓存 key
             cache_key = make_cache_key(key_prefix, *args, **kwargs)
@@ -627,6 +627,9 @@ def warmup_cache(func: Callable, *args, **kwargs) -> bool:
             if prefix is None or ttl is None:
                 logger.error(f"缓存预热失败 [{func.__name__}]: 缺少缓存元数据")
                 return False
+
+            if isinstance(result, dict) and "_cache_ttl" in result:
+                ttl = result.pop("_cache_ttl")
 
             key = make_cache_key(prefix, *args, **kwargs)
 
