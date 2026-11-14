@@ -51,10 +51,9 @@ services:
         max-file: "3"
 
   # X-Data 主服务
-  xanalytics:
+  x-data:
     build: .
-    # 使用无横杠名称，避免 Docker Compose 将 x- 前缀误识别为扩展字段 (Extension Fields)
-    container_name: xanalytics
+    container_name: x-data
     ports:
       - "8080:8080"
     environment:

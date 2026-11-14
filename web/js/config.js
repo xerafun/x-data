@@ -1,5 +1,5 @@
 /**
- * X-Analytics 全局系统配置
+ * X-Data 全局系统配置
  *
  * 涨跌配色模式配置项 (colorMode)：
  * - 'red-up-green-down': 红涨绿跌 (中国 A 股 / 港股 / 亚洲标准惯例，默认)
