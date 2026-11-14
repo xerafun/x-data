@@ -290,7 +290,7 @@ class HoldingsController {
                             <span style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">${item.institution}</span>
                         </div>
                     </td>
-                    <td class="col-return" style="width: 140px;">
+                    <td class="col-return" style="width: 120px; text-align: left;">
                         <span class="font-mono ${r1yClass}" style="font-size: 15px; font-weight: 800;">${r1yStr}</span>
                     </td>
                     <td style="min-width: 170px;">${topHoldingHtml}</td>
@@ -498,7 +498,7 @@ class HoldingsController {
                         <tr>
                             <th class="col-rank" style="width: 48px; text-align: center;">排名</th>
                             <th class="col-name" style="text-align: left;">投资舵手 / 机构</th>
-                            <th class="col-return" style="width: 140px; text-align: left;">近1年收益</th>
+                            <th class="col-return" style="width: 120px; text-align: left;">近1年收益</th>
                             <th style="text-align: left; min-width: 170px;">第一重仓标的 (占比)</th>
                             <th style="text-align: right; width: 110px;">披露规模</th>
                             <th style="text-align: center; width: 110px;">标的数 / 集中度</th>

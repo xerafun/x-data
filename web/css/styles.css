@@ -4550,6 +4550,11 @@ body.modal-open {
     width: 100%;
 }
 
+.holdings-rank-table .col-return {
+    width: 120px;
+    text-align: left;
+}
+
 .holdings-rank-table tbody tr {
     transition: background-color 0.15s ease;
 }
