@@ -266,10 +266,6 @@ class HoldingsController {
             const r1yStr = r1y != null ? `${r1y > 0 ? '+' : ''}${utils.formatPercentage(r1y)}` : '--';
             const r1yClass = r1y > 0 ? 'text-up' : (r1y < 0 ? 'text-down' : '');
 
-            const alpha = item.alpha_1y;
-            const alphaStr = alpha != null ? (alpha > 0 ? `超额 +${alpha.toFixed(1)}%` : `跑输 ${Math.abs(alpha).toFixed(1)}%`) : '';
-            const alphaClass = alpha > 0 ? 'text-up' : 'text-secondary';
-
             const topHolding = item.top_holding;
             let topHoldingHtml = '--';
             if (topHolding) {
@@ -295,10 +291,7 @@ class HoldingsController {
                         </div>
                     </td>
                     <td class="col-return" style="width: 140px;">
-                        <div style="display: flex; flex-direction: column;">
-                            <span class="font-mono ${r1yClass}" style="font-size: 15px; font-weight: 800;">${r1yStr}</span>
-                            ${alphaStr ? `<span style="font-size: 10px; color: var(--text-secondary); margin-top: 1px;" class="${alphaClass}">${alphaStr}</span>` : ''}
-                        </div>
+                        <span class="font-mono ${r1yClass}" style="font-size: 15px; font-weight: 800;">${r1yStr}</span>
                     </td>
                     <td style="min-width: 170px;">${topHoldingHtml}</td>
                     <td style="text-align: right; width: 110px; font-family: var(--font-mono); font-weight: 700; font-size: 13px;">
@@ -505,7 +498,7 @@ class HoldingsController {
                         <tr>
                             <th class="col-rank" style="width: 48px; text-align: center;">排名</th>
                             <th class="col-name" style="text-align: left;">投资舵手 / 机构</th>
-                            <th class="col-return" style="width: 140px; text-align: left;">近1年收益表现</th>
+                            <th class="col-return" style="width: 140px; text-align: left;">近1年收益</th>
                             <th style="text-align: left; min-width: 170px;">第一重仓标的 (占比)</th>
                             <th style="text-align: right; width: 110px;">披露规模</th>
                             <th style="text-align: center; width: 110px;">标的数 / 集中度</th>
@@ -1126,7 +1119,7 @@ class HoldingsController {
 
 2. 顶级舵手与收益榜
 · 顶级舵手（Whales）：指掌管巨额资本且具有全球宏观与科技风向标意义的顶尖投资人与机构（涵盖巴菲特、段永平、伯里、阿克曼、木头姐等各流派代表）；
-· 收益表现核算：系统依据各投资人最新在册的法定 13F-HR 持仓权重，每日动态核算组合的综合净值与累计收益率，形成客观的超额 Alpha 创造能力排行榜；
+· 收益表现核算：系统依据各投资人最新在册的法定 13F-HR 持仓权重，每日动态核算组合的综合净值与累计收益率，形成客观的顶级舵手收益表现排行榜；
 · 顶流共识挖掘：当多家不同流派的顶尖机构同时重仓同一家公司时，系统自动发掘出最具资金确定性的“重仓共识榜单”。
 
 3. 申报数据特性提示
