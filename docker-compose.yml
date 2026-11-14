@@ -51,7 +51,7 @@ services:
         max-file: "3"
 
   # X-Data 主服务
-  x-data:
+  xdata:
     build: .
     container_name: x-data
     ports:
