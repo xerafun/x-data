@@ -405,11 +405,17 @@ def setup_default_jobs():
         non_trading_max_age_seconds=settings.CACHE_TTL.get("market_heat", 7200),
     )
 
-    # 4. 美债 (低频)
+    # 4. 美债与宏观流动性 (低频)
+    from ..modules.market_western import GlobalLiquidity
     scheduler.add_simple_job(
         job_id="warmup:western:treasury",
         func=lambda: warmup_cache(USTreasury.get_us_bond_yields),
         interval_minutes=240
+    )
+    scheduler.add_simple_job(
+        job_id="warmup:global:liquidity",
+        func=lambda: warmup_cache(GlobalLiquidity.get_liquidity_overview),
+        interval_minutes=120
     )
 
     # 5. AI 产业链
@@ -689,6 +695,8 @@ def initial_warmup():
         warmup_cache(CNBonds.get_bond_market_analysis)
         warmup_cache(LPRAnalysis.get_lpr_rates)
         warmup_cache(USTreasury.get_us_bond_yields)
+        from ..modules.market_western import GlobalLiquidity
+        warmup_cache(GlobalLiquidity.get_liquidity_overview)
 
         # 全球主要指数走势对比预热
         from ..modules.chart import get_indices_comparison

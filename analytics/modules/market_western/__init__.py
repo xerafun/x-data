@@ -7,5 +7,6 @@ from .fear_greed import USFearGreedIndex
 from .heat import USMarketHeat
 from .treasury import USTreasury
 from .leaders import USMarketLeaders
+from .liquidity import GlobalLiquidity
 
-__all__ = ["USFearGreedIndex", "USMarketHeat", "USTreasury", "USMarketLeaders"]
+__all__ = ["USFearGreedIndex", "USMarketHeat", "USTreasury", "USMarketLeaders", "GlobalLiquidity"]

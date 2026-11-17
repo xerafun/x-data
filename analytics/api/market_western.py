@@ -8,7 +8,7 @@ Desc: 欧美市场 API 路由
 from fastapi import APIRouter
 from typing import Dict, Any
 from ..core.decorators import safe_endpoint
-from ..modules.market_western import USFearGreedIndex, USMarketHeat, USTreasury, USMarketLeaders
+from ..modules.market_western import USFearGreedIndex, USMarketHeat, USTreasury, USMarketLeaders, GlobalLiquidity
 
 router = APIRouter(tags=["欧美市场"])
 
@@ -69,3 +69,12 @@ def get_us_obo_signal(period: str = "daily") -> Dict[str, Any]:
     """
     from ..modules.signals.overbought_oversold import OverboughtOversoldSignal
     return OverboughtOversoldSignal.get_us_signal(period=period)
+
+
+@router.get("/liquidity", summary="获取全球宏观流动性与资金风向")
+@safe_endpoint
+def get_global_liquidity() -> Dict[str, Any]:
+    """
+    获取全球宏观流动性、美元高息吸水与资金流向预警
+    """
+    return GlobalLiquidity.get_liquidity_overview()

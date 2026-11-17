@@ -208,6 +208,58 @@
                         data-lucide="refresh-cw" width="14"></i> 刷新</button>
             </div>
 
+            <!-- 全球宏观流动性与资金风向 -->
+            <div class="market-section" style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                    <h3 class="subsection-title" style="margin: 0; display: flex; align-items: center; gap: 6px;">
+                        全球流动性与资金风向
+                    </h3>
+                    <div id="liquidity-regime-badge" class="liquidity-badge regime-info">
+                        <span class="pulse-dot"></span>
+                        <span id="liquidity-regime-text">计算中...</span>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: 16px 18px;">
+                    <div class="liquidity-grid" id="liquidity-metrics-grid">
+                        <div class="liquidity-metric-box">
+                            <div class="metric-header">
+                                <span class="metric-label">美元指数 (DXY)</span>
+                                <span class="metric-tag" id="liq-dxy-status">--</span>
+                            </div>
+                            <div class="metric-val" id="liq-dxy-val">--</div>
+                            <div class="metric-sub" id="liq-dxy-sub">现金汇率相对强弱</div>
+                        </div>
+
+                        <div class="liquidity-metric-box">
+                            <div class="metric-header">
+                                <span class="metric-label">10Y TIPS 实际利率</span>
+                                <span class="metric-tag" id="liq-tips-status">--</span>
+                            </div>
+                            <div class="metric-val" id="liq-tips-val">--</div>
+                            <div class="metric-sub" id="liq-tips-sub">无风险贴现率真锚</div>
+                        </div>
+
+                        <div class="liquidity-metric-box">
+                            <div class="metric-header">
+                                <span class="metric-label">美联储净流动性</span>
+                                <span class="metric-tag" id="liq-net-status">--</span>
+                            </div>
+                            <div class="metric-val" id="liq-net-val">--</div>
+                            <div class="metric-sub" id="liq-net-sub">总资产 - TGA - 逆回购</div>
+                        </div>
+                    </div>
+
+                    <div class="liquidity-diagnosis" id="liquidity-diagnosis">
+                        <div class="diag-icon">💡</div>
+                        <div class="diag-content">
+                            <div class="diag-title" id="diag-title">资金风向诊断</div>
+                            <div class="diag-desc" id="diag-desc">正在综合评估跨资产资金流向与流动性压力...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 亚洲市场子区域 -->
             <div class="market-section">
                 <h3 class="subsection-title">亚洲市场</h3>

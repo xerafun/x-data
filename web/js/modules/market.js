@@ -692,11 +692,76 @@ class MarketController {
     }
 
     async loadData() {
-        console.log('📊 加载全球市场数据 (亚洲市场 + 欧美市场)...');
+        console.log('📊 加载全球市场数据 (流动性 + 亚洲市场 + 欧美市场)...');
         await Promise.allSettled([
+            this.loadLiquidity(),
             this.asiaController.loadData(),
             this.westernController.loadData()
         ]);
+    }
+
+    async loadLiquidity() {
+        try {
+            const data = await api.getGlobalLiquidity();
+            this.renderLiquidity(data);
+        } catch (error) {
+            console.error('加载全球宏观流动性数据失败:', error);
+        }
+    }
+
+    renderLiquidity(res) {
+        const data = (res && res.data) ? res.data : res;
+        if (!data || data.error) return;
+
+        // 1. Regime Badge
+        const badge = document.getElementById('liquidity-regime-badge');
+        const badgeText = document.getElementById('liquidity-regime-text');
+        if (badge && badgeText && data.regime) {
+            badgeText.textContent = data.regime.name;
+            badge.className = `liquidity-badge regime-${data.regime.level || 'info'}`;
+        }
+
+        // 2. DXY
+        if (data.dxy) {
+            const dxyVal = document.getElementById('liq-dxy-val');
+            const dxyStatus = document.getElementById('liq-dxy-status');
+            const dxySub = document.getElementById('liq-dxy-sub');
+            if (dxyVal) {
+                const sign = data.dxy.change_pct > 0 ? '+' : '';
+                const trendClass = data.dxy.change_pct > 0 ? 'text-up' : data.dxy.change_pct < 0 ? 'text-down' : '';
+                dxyVal.innerHTML = `${data.dxy.value} <span class="metric-trend ${trendClass}">(${sign}${data.dxy.change_pct}%)</span>`;
+            }
+            if (dxyStatus) dxyStatus.textContent = data.dxy.status;
+            if (dxySub) dxySub.textContent = data.dxy.sublabel || '现金汇率相对强弱';
+        }
+
+        // 3. 10Y TIPS
+        if (data.tips_10y) {
+            const tipsVal = document.getElementById('liq-tips-val');
+            const tipsStatus = document.getElementById('liq-tips-status');
+            const tipsSub = document.getElementById('liq-tips-sub');
+            if (tipsVal) tipsVal.textContent = `${data.tips_10y.value}%`;
+            if (tipsStatus) tipsStatus.textContent = data.tips_10y.status;
+            if (tipsSub) tipsSub.textContent = `${data.tips_10y.sublabel} (${data.tips_10y.date || '最新'})`;
+        }
+
+        // 4. Net Liquidity
+        if (data.net_liquidity) {
+            const netVal = document.getElementById('liq-net-val');
+            const netStatus = document.getElementById('liq-net-status');
+            const netSub = document.getElementById('liq-net-sub');
+            if (netVal) netVal.textContent = `$${data.net_liquidity.value}T`;
+            if (netStatus) netStatus.textContent = data.net_liquidity.status;
+            if (netSub) netSub.textContent = `${data.net_liquidity.sublabel} (${data.net_liquidity.date || '最新'})`;
+        }
+
+        // 5. Diagnosis Box
+        if (data.regime) {
+            const diagTitle = document.getElementById('diag-title');
+            const diagDesc = document.getElementById('diag-desc');
+            if (diagTitle) diagTitle.textContent = `${data.regime.name} · ${data.regime.signal}`;
+            if (diagDesc) diagDesc.textContent = data.regime.description;
+        }
     }
 }
 

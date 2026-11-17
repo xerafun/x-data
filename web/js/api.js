@@ -284,6 +284,10 @@ class API {
         return this.request('/market-western/bond-yields');
     }
 
+    async getGlobalLiquidity() {
+        return this.request('/market-western/liquidity');
+    }
+
     // Gold Market
     async getGoldSilverRatio() {
         return this.request('/gold/gold-silver-ratio');

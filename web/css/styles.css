@@ -5094,4 +5094,142 @@ body.modal-open {
     }
 }
 
+/* ==========================================================================
+   全球宏观流动性与资金风向 (Global Liquidity & Fund Flows)
+   ========================================================================== */
+.liquidity-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1.4;
+    transition: all 0.2s ease;
+}
+
+.liquidity-badge.regime-success {
+    background: rgba(34, 197, 94, 0.12);
+    color: var(--accent-green);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.liquidity-badge.regime-warning {
+    background: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.liquidity-badge.regime-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.liquidity-badge.regime-info {
+    background: rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.liquidity-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.liquidity-metric-box {
+    background: var(--bg-body);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.liquidity-metric-box .metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.liquidity-metric-box .metric-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.liquidity-metric-box .metric-tag {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: rgba(115, 115, 115, 0.12);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.liquidity-metric-box .metric-val {
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    line-height: 1.2;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.liquidity-metric-box .metric-trend {
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+.liquidity-metric-box .metric-sub {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.liquidity-diagnosis {
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: var(--bg-body);
+    border: 1px solid var(--border-light);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.liquidity-diagnosis .diag-icon {
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.liquidity-diagnosis .diag-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.liquidity-diagnosis .diag-desc {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .liquidity-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}
+
 
