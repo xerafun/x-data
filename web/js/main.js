@@ -3,7 +3,7 @@
 
 class App {
     constructor() {
-        this.currentTab = 'holdings';
+        this.currentTab = 'global';
         this.lastUpdateTime = null;
         this.loadingTabs = new Set();
         this.loadedTabs = new Set();
@@ -89,15 +89,15 @@ class App {
                         break;
                     case '1':
                         event.preventDefault();
-                        this.switchTab('holdings');
+                        this.switchTab('global');
                         break;
                     case '2':
                         event.preventDefault();
-                        this.switchTab('chart');
+                        this.switchTab('holdings');
                         break;
                     case '3':
                         event.preventDefault();
-                        this.switchTab('global');
+                        this.switchTab('chart');
                         break;
                     case '4':
                         event.preventDefault();
@@ -139,16 +139,16 @@ class App {
                     return;
                 }
                 event.preventDefault();
-                this.switchTab('holdings');
+                this.switchTab('global');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
         }
 
         // 监听浏览器前进/后退
         window.addEventListener('popstate', () => {
-            const urlTab = utils.getUrlParam('tab') || 'holdings';
+            const urlTab = utils.getUrlParam('tab') || 'global';
             const validTabs = ['holdings', 'chart', 'global', 'ai', 'gold', 'qdii'];
-            const targetTab = validTabs.includes(urlTab) ? urlTab : 'holdings';
+            const targetTab = validTabs.includes(urlTab) ? urlTab : 'global';
             if (this.currentTab !== targetTab) {
                 this.switchTab(targetTab, false);
             }
@@ -172,7 +172,7 @@ class App {
 
         // 更新URL并清除其他非当前 Tab 的子级参数（如 filter, subtab 等）
         const url = new URL(window.location.href);
-        if (tabId === 'holdings') {
+        if (tabId === 'global') {
             url.searchParams.delete('tab');
         } else {
             url.searchParams.set('tab', tabId);
@@ -317,7 +317,7 @@ class App {
         if (targetTab && validTabs.includes(targetTab)) {
             this.switchTab(targetTab, false);
         } else {
-            await this.loadTab('holdings', false);
+            await this.loadTab('global', false);
         }
     }
 

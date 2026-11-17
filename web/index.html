@@ -79,14 +79,14 @@
         <h1 class="sr-only">X-Data - 宏观资产与产业周期看板</h1>
         <!-- Tabs -->
         <nav class="tabs">
-            <button class="tab-btn active" data-tab="holdings">
+            <button class="tab-btn active" data-tab="global">
+                Global
+            </button>
+            <button class="tab-btn" data-tab="holdings">
                 Holdings
             </button>
             <button class="tab-btn" data-tab="chart">
                 Chart
-            </button>
-            <button class="tab-btn" data-tab="global">
-                Global
             </button>
             <button class="tab-btn" data-tab="ai">
                 AI
@@ -100,7 +100,7 @@
         </nav>
 
         <!-- 顶级机构持仓 (13F Whale Holdings) -->
-        <section class="tab-content active" id="holdings">
+        <section class="tab-content" id="holdings">
             <div class="section-header">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <h2 class="section-title" style="margin: 0; white-space: nowrap;">Holdings</h2>
@@ -201,7 +201,7 @@
         </section>
 
         <!-- Global Market -->
-        <section class="tab-content" id="global">
+        <section class="tab-content active" id="global">
             <div class="section-header">
                 <h2 class="section-title">Global</h2>
                 <button class="refresh-btn" onclick="window.app.refreshCurrentTab(true)" title="点击刷新"><i

@@ -4,6 +4,7 @@
 
 ## 核心看板
 
+- [全球市场与宏观流动性](https://data.xerafun.com/): 全球宏观流动性、美元高息吸水诊断、亚洲与欧美市场股债看板（默认主看板）。
 - [13F 舵手持仓](https://data.xerafun.com/?tab=holdings): 追踪巴菲特、段永平、伯里等机构 SEC 13F 季度持仓与加权收益率。
 - [全球大类资产](https://data.xerafun.com/?tab=assets): 标普500、纳指、沪深300、黄金、原油、比特币等多资产走势对比。
 - [指数估值分位](https://data.xerafun.com/?tab=valuation): 全球核心股指 PE-TTM 与 PB 历史百分位及水温估值。
