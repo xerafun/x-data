@@ -689,6 +689,10 @@ class MarketController {
     constructor() {
         this.asiaController = new AsiaMarketController();
         this.westernController = new WesternMarketController();
+        this.macroAssetsData = null;
+        this.currentMacroPeriod = '20d';
+        this.macroPeriodEventsBound = false;
+        this.macroChart = null;
     }
 
     async loadData() {
@@ -721,47 +725,391 @@ class MarketController {
             badge.className = `liquidity-badge regime-${data.regime.level || 'info'}`;
         }
 
-        // 2. DXY
+        // 2. 底座三项微型宏观指标
         if (data.dxy) {
             const dxyVal = document.getElementById('liq-dxy-val');
             const dxyStatus = document.getElementById('liq-dxy-status');
-            const dxySub = document.getElementById('liq-dxy-sub');
             if (dxyVal) {
                 const sign = data.dxy.change_pct > 0 ? '+' : '';
                 const trendClass = data.dxy.change_pct > 0 ? 'text-up' : data.dxy.change_pct < 0 ? 'text-down' : '';
-                dxyVal.innerHTML = `${data.dxy.value} <span class="metric-trend ${trendClass}">(${sign}${data.dxy.change_pct}%)</span>`;
+                dxyVal.innerHTML = `${data.dxy.value} <span class="metric-trend ${trendClass}" style="font-size: 11px;">(${sign}${data.dxy.change_pct}%)</span>`;
             }
-            if (dxyStatus) dxyStatus.textContent = data.dxy.status;
-            if (dxySub) dxySub.textContent = data.dxy.sublabel || '现金汇率相对强弱';
+            if (dxyStatus) dxyStatus.textContent = `${data.dxy.status} · 现金相对强弱`;
         }
 
-        // 3. 10Y TIPS
         if (data.tips_10y) {
             const tipsVal = document.getElementById('liq-tips-val');
             const tipsStatus = document.getElementById('liq-tips-status');
-            const tipsSub = document.getElementById('liq-tips-sub');
             if (tipsVal) tipsVal.textContent = `${data.tips_10y.value}%`;
-            if (tipsStatus) tipsStatus.textContent = data.tips_10y.status;
-            if (tipsSub) tipsSub.textContent = `${data.tips_10y.sublabel} (${data.tips_10y.date || '最新'})`;
+            if (tipsStatus) tipsStatus.textContent = `${data.tips_10y.status} · 贴现率真锚 (${data.tips_10y.date || '最新'})`;
         }
 
-        // 4. Net Liquidity
         if (data.net_liquidity) {
             const netVal = document.getElementById('liq-net-val');
             const netStatus = document.getElementById('liq-net-status');
-            const netSub = document.getElementById('liq-net-sub');
             if (netVal) netVal.textContent = `$${data.net_liquidity.value}T`;
-            if (netStatus) netStatus.textContent = data.net_liquidity.status;
-            if (netSub) netSub.textContent = `${data.net_liquidity.sublabel} (${data.net_liquidity.date || '最新'})`;
+            if (netStatus) netStatus.textContent = `${data.net_liquidity.status} · 美元活水 (${data.net_liquidity.date || '最新'})`;
         }
 
-        // 5. Diagnosis Box
-        if (data.regime) {
-            const diagTitle = document.getElementById('diag-title');
-            const diagDesc = document.getElementById('diag-desc');
-            if (diagTitle) diagTitle.textContent = `${data.regime.name} · ${data.regime.signal}`;
-            if (diagDesc) diagDesc.textContent = data.regime.description;
+        // 3. 存储资产与流向数据并渲染
+        if (data.assets && data.assets.length > 0) {
+            this.macroAssetsData = data.assets;
         }
+
+        if (!this.macroPeriodEventsBound) {
+            this.bindMacroPeriodEvents();
+            this.macroPeriodEventsBound = true;
+        }
+
+        this.updateMacroAssetsChart();
+        this.renderCapitalFlowPipeline();
+    }
+
+    bindMacroPeriodEvents() {
+        const pills = document.querySelectorAll('#macro-asset-period-pills .period-pill');
+        pills.forEach(pill => {
+            pill.onclick = () => {
+                pills.forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                this.currentMacroPeriod = pill.dataset.period || '20d';
+                this.updateMacroAssetsChart();
+                this.renderCapitalFlowPipeline();
+            };
+        });
+    }
+
+    updateMacroAssetsChart() {
+        const container = document.getElementById('macro-assets-chart');
+        if (!container || !this.macroAssetsData || this.macroAssetsData.length === 0) return;
+
+        const period = this.currentMacroPeriod || '20d';
+        let barCount = 20;
+        if (period === '5d') barCount = 5;
+        else if (period === '60d') barCount = 60;
+
+        // 收集所有资产在所选周期内的有效日期并集
+        const dateSet = new Set();
+        this.macroAssetsData.forEach(item => {
+            const hist = item.history || [];
+            const slice = hist.slice(-Math.min(hist.length, barCount + 5));
+            slice.forEach(h => {
+                if (h[0]) dateSet.add(h[0]);
+            });
+        });
+
+        let unifiedDates = Array.from(dateSet).sort();
+        if (unifiedDates.length > barCount) {
+            unifiedDates = unifiedDates.slice(-barCount);
+        }
+        if (unifiedDates.length === 0) return;
+
+        const startDate = unifiedDates[0];
+
+        const series = [];
+        const legendItems = [];
+
+        this.macroAssetsData.forEach(item => {
+            const hist = item.history || [];
+            const dateMap = new Map();
+            hist.forEach(h => {
+                if (h[1] != null && h[1] > 0) dateMap.set(h[0], h[1]);
+            });
+
+            // 寻找基准价格
+            let basePrice = dateMap.get(startDate);
+            if (basePrice == null) {
+                for (let i = hist.length - 1; i >= 0; i--) {
+                    if (hist[i][0] <= startDate && hist[i][1] != null && hist[i][1] > 0) {
+                        basePrice = hist[i][1];
+                        break;
+                    }
+                }
+            }
+            if (basePrice == null && hist.length > 0) {
+                basePrice = hist[0][1];
+            }
+
+            let lastClose = basePrice;
+            const returns = [];
+
+            unifiedDates.forEach(date => {
+                if (dateMap.has(date)) {
+                    lastClose = dateMap.get(date);
+                }
+                if (basePrice && basePrice > 0 && lastClose != null && lastClose > 0) {
+                    const ret = ((lastClose - basePrice) / basePrice) * 100;
+                    returns.push(Number(ret.toFixed(2)));
+                } else {
+                    returns.push(0);
+                }
+            });
+
+            const finalReturn = returns.length > 0 ? returns[returns.length - 1] : 0;
+            legendItems.push({
+                name: item.name,
+                code: item.code,
+                color: item.color,
+                ret: finalReturn
+            });
+
+            series.push({
+                name: item.name,
+                code: item.code,
+                type: 'line',
+                data: returns,
+                smooth: 0.2,
+                showSymbol: false,
+                symbol: 'circle',
+                symbolSize: 6,
+                lineStyle: {
+                    width: 2.2,
+                    color: item.color
+                },
+                itemStyle: {
+                    color: item.color
+                },
+                emphasis: {
+                    focus: 'series',
+                    lineStyle: { width: 3.5 }
+                }
+            });
+        });
+
+        // 渲染顶部图例 Chips
+        const legendContainer = document.getElementById('macro-chart-legend');
+        if (legendContainer) {
+            legendContainer.innerHTML = legendItems.map(item => {
+                const sign = item.ret > 0 ? '+' : '';
+                const trendClass = item.ret > 0 ? 'text-up' : item.ret < 0 ? 'text-down' : '';
+                return `
+                    <div class="macro-asset-chip">
+                        <span class="chip-dot" style="background-color: ${item.color};"></span>
+                        <span>${item.name}</span>
+                        <span class="chip-val ${trendClass}">${sign}${item.ret}%</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 0% 基准虚线
+        if (series.length > 0) {
+            series[0].markLine = {
+                silent: true,
+                symbol: 'none',
+                label: {
+                    show: true,
+                    position: 'end',
+                    formatter: ' 0.00%',
+                    color: '#9ca3af',
+                    fontSize: 10
+                },
+                lineStyle: {
+                    color: '#9ca3af',
+                    type: 'dashed',
+                    width: 1.2
+                },
+                data: [{ yAxis: 0 }]
+            };
+        }
+
+        if (typeof echarts === 'undefined') return;
+
+        let chart = echarts.getInstanceByDom(container);
+        if (!chart) {
+            chart = echarts.init(container);
+            window.addEventListener('resize', () => chart && chart.resize());
+        }
+
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+        const option = {
+            backgroundColor: 'transparent',
+            animationDuration: 300,
+            grid: {
+                left: '3%',
+                right: '4%',
+                top: '12%',
+                bottom: '8%',
+                containLabel: true
+            },
+            tooltip: {
+                trigger: 'axis',
+                confine: true,
+                axisPointer: {
+                    type: 'cross',
+                    lineStyle: {
+                        color: isDark ? 'rgba(255,255,255,0.2)' : '#cbd5e1',
+                        type: 'dashed'
+                    }
+                },
+                backgroundColor: isDark ? 'rgba(24, 24, 27, 0.95)' : 'rgba(255, 255, 255, 0.98)',
+                borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#e5e7eb',
+                borderWidth: 1,
+                padding: [8, 12],
+                textStyle: {
+                    color: isDark ? '#f4f4f5' : '#1f2937',
+                    fontSize: 12
+                },
+                formatter: function (params) {
+                    if (!params || params.length === 0) return '';
+                    const dateStr = params[0].axisValue;
+                    const sorted = [...params].sort((a, b) => (b.value ?? -999) - (a.value ?? -999));
+                    let html = `<div style="font-weight: 600; font-size: 12px; margin-bottom: 6px; border-bottom: 1px solid ${isDark ? '#333' : '#eee'}; padding-bottom: 3px;">${dateStr} 累计收益率</div>`;
+                    html += '<div style="display: flex; flex-direction: column; gap: 4px; min-width: 170px;">';
+                    sorted.forEach(p => {
+                        const marker = p.marker;
+                        const name = p.seriesName;
+                        const val = p.value != null ? Number(p.value).toFixed(2) : '--';
+                        const sign = p.value > 0 ? '+' : '';
+                        const color = p.value > 0 ? '#ef4444' : p.value < 0 ? '#22c55e' : (isDark ? '#a1a1aa' : '#6b7280');
+                        html += `
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px;">
+                                <span>${marker} ${name}</span>
+                                <span style="font-family: monospace; font-weight: 700; color: ${color};">${sign}${val}%</span>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    return html;
+                }
+            },
+            xAxis: {
+                type: 'category',
+                data: unifiedDates,
+                axisLine: { lineStyle: { color: isDark ? 'rgba(255,255,255,0.15)' : '#e5e7eb' } },
+                axisLabel: {
+                    color: isDark ? '#a1a1aa' : '#6b7280',
+                    fontSize: 11,
+                    formatter: value => value ? value.substring(5) : ''
+                },
+                axisTick: { show: false }
+            },
+            yAxis: {
+                type: 'value',
+                axisLine: { show: false },
+                splitLine: {
+                    lineStyle: {
+                        color: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9'
+                    }
+                },
+                axisLabel: {
+                    color: isDark ? '#a1a1aa' : '#6b7280',
+                    fontSize: 11,
+                    formatter: '{value}%'
+                }
+            },
+            series: series
+        };
+
+        chart.setOption(option, true);
+    }
+
+    renderCapitalFlowPipeline() {
+        const pipelineContainer = document.getElementById('capital-flow-pipeline');
+        if (!pipelineContainer || !this.macroAssetsData || this.macroAssetsData.length === 0) return;
+
+        const periodKey = this.currentMacroPeriod || '20d';
+
+        const outflows = [];
+        const inflows = [];
+
+        this.macroAssetsData.forEach(item => {
+            const ret = item.returns ? (item.returns[periodKey] ?? 0) : 0;
+            const assetObj = {
+                name: item.name,
+                code: item.code,
+                color: item.color,
+                change: ret
+            };
+            if (ret < 0) {
+                outflows.push(assetObj);
+            } else {
+                inflows.push(assetObj);
+            }
+        });
+
+        outflows.sort((a, b) => a.change - b.change);
+        inflows.sort((a, b) => b.change - a.change);
+
+        const dxy = this.macroAssetsData.find(a => a.code === 'DXY');
+        const spx = this.macroAssetsData.find(a => a.code === 'SP500');
+        const dxyRet = dxy && dxy.returns ? dxy.returns[periodKey] : 0;
+        const spxRet = spx && spx.returns ? spx.returns[periodKey] : 0;
+
+        let bridgeTitle = '资金双向轮动';
+        let bridgeDesc = '跨资产分化再平衡，资金处于再配置阶段';
+
+        if (dxyRet > 0 && outflows.some(a => a.code === 'SP500') && outflows.some(a => a.code === 'GOLD')) {
+            bridgeTitle = '流动性虹吸 · 资金撤向避风港';
+            bridgeDesc = '股债金三杀去杠杆，高贴现率压制下高息现金成为唯一避风港';
+        } else if (spxRet > 0) {
+            bridgeTitle = '风险追逐 · 资金回流核心资产';
+            bridgeDesc = '避险资产离场，流动性回流权益与成长标的 (Risk-On)';
+        } else if (outflows.some(a => a.code === 'SP500') && inflows.some(a => a.code === 'GOLD' || a.code === 'TLT')) {
+            bridgeTitle = '经典避险 · 防御资金买金买债';
+            bridgeDesc = '股市风险释放，避险资金有序涌入黄金与长端国债 (Flight to Safety)';
+        }
+
+        let outflowsHtml = '';
+        if (outflows.length > 0) {
+            outflowsHtml = outflows.map(o => `
+                <div class="flow-asset-pill">
+                    <span class="pill-dot" style="background-color: ${o.color};"></span>
+                    <span class="pill-name">${o.name}</span>
+                    <span class="pill-ret text-down">${o.change}%</span>
+                </div>
+            `).join('');
+        } else {
+            outflowsHtml = '<span style="font-size: 11.5px; color: var(--text-secondary);">暂无明显承压抛售资产</span>';
+        }
+
+        let inflowsHtml = '';
+        if (inflows.length > 0) {
+            inflowsHtml = inflows.map(i => {
+                const isDxy = i.code === 'DXY';
+                const subTip = isDxy ? ' (高息现金吸金池)' : '';
+                return `
+                    <div class="flow-asset-pill" style="${isDxy ? 'border-color: rgba(139, 92, 246, 0.4);' : ''}">
+                        <span class="pill-dot" style="background-color: ${i.color};"></span>
+                        <span class="pill-name">${i.name}${subTip}</span>
+                        <span class="pill-ret text-up">+${i.change}%</span>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            inflowsHtml = '<span style="font-size: 11.5px; color: var(--text-secondary);">全线收缩观望</span>';
+        }
+
+        pipelineContainer.innerHTML = `
+            <div class="flow-side">
+                <div class="flow-header">
+                    <span class="flow-tag outflow">流出端 (承压抛售)</span>
+                </div>
+                <div class="flow-asset-list">
+                    ${outflowsHtml}
+                </div>
+            </div>
+
+            <div class="flow-dynamic-bridge">
+                <div class="bridge-action">
+                    <span class="action-badge">${bridgeTitle}</span>
+                    <div class="bridge-arrows">
+                        <span>●</span>
+                        <span style="letter-spacing: 2px;">┈┈►</span>
+                    </div>
+                    <span class="bridge-desc">${bridgeDesc}</span>
+                </div>
+            </div>
+
+            <div class="flow-side">
+                <div class="flow-header">
+                    <span class="flow-tag inflow">流入端 (吸金/避风港)</span>
+                </div>
+                <div class="flow-asset-list">
+                    ${inflowsHtml}
+                </div>
+            </div>
+        `;
     }
 }
 

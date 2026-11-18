@@ -5133,102 +5133,227 @@ body.modal-open {
     border: 1px solid rgba(59, 130, 246, 0.25);
 }
 
-.liquidity-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-}
-
-.liquidity-metric-box {
-    background: var(--bg-body);
-    border: 1px solid var(--border-light);
-    border-radius: 8px;
-    padding: 12px 14px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.liquidity-metric-box .metric-header {
+/* 宏观大类资产与资金风向走势图头部 */
+.macro-chart-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
-.liquidity-metric-box .metric-label {
-    font-size: 12px;
-    font-weight: 600;
+.macro-chart-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.macro-asset-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    border-radius: 6px;
+    background: var(--bg-body);
+    border: 1px solid var(--border-light);
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+}
+
+.macro-asset-chip .chip-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.macro-asset-chip .chip-val {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    margin-left: 2px;
+}
+
+.macro-chart-subtitle {
+    font-size: 11px;
     color: var(--text-secondary);
 }
 
-.liquidity-metric-box .metric-tag {
-    font-size: 10px;
-    padding: 1px 6px;
+/* 资金流向管道 (Capital Flow Pipeline) */
+.capital-flow-pipeline {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: var(--bg-body);
+    border: 1px solid var(--border-light);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 16px;
+}
+
+.flow-side {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.flow-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.flow-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
     border-radius: 4px;
-    background: rgba(115, 115, 115, 0.12);
+    line-height: 1.3;
+}
+
+.flow-tag.outflow {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.flow-tag.inflow {
+    background: rgba(34, 197, 94, 0.12);
+    color: var(--accent-green);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.flow-asset-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.flow-asset-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    font-size: 12px;
+}
+
+.flow-asset-pill .pill-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+}
+
+.flow-asset-pill .pill-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.flow-asset-pill .pill-ret {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 11.5px;
+}
+
+.flow-dynamic-bridge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 10px;
+}
+
+.bridge-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.action-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.bridge-arrows {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--accent-blue, #3b82f6);
+    font-size: 14px;
+    margin: 2px 0;
+}
+
+.bridge-desc {
+    font-size: 10.5px;
+    color: var(--text-secondary);
+    max-width: 170px;
+    line-height: 1.35;
+    text-align: center;
+}
+
+/* 宏观流动性底座微型指示条 */
+.liquidity-metrics-row {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.micro-metric-item {
+    background: var(--bg-body);
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.micro-metric-label {
+    font-size: 11px;
     color: var(--text-secondary);
     font-weight: 500;
 }
 
-.liquidity-metric-box .metric-val {
-    font-size: 19px;
+.micro-metric-val {
+    font-size: 16px;
     font-weight: 700;
     color: var(--text-primary);
     font-family: var(--font-mono);
     line-height: 1.2;
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
 }
 
-.liquidity-metric-box .metric-trend {
-    font-size: 11.5px;
-    font-weight: 600;
-}
-
-.liquidity-metric-box .metric-sub {
-    font-size: 11px;
+.micro-metric-sub {
+    font-size: 10.5px;
     color: var(--text-secondary);
-    margin-top: 5px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.liquidity-diagnosis {
-    margin-top: 12px;
-    padding: 10px 14px;
-    border-radius: 6px;
-    background: var(--bg-body);
-    border: 1px solid var(--border-light);
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-}
-
-.liquidity-diagnosis .diag-icon {
-    font-size: 14px;
-    line-height: 1.4;
-}
-
-.liquidity-diagnosis .diag-title {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 2px;
-}
-
-.liquidity-diagnosis .diag-desc {
-    font-size: 11.5px;
-    color: var(--text-secondary);
-    line-height: 1.5;
-}
-
-@media (max-width: 768px) {
-    .liquidity-grid {
+@media (max-width: 820px) {
+    .capital-flow-pipeline {
         grid-template-columns: 1fr;
-        gap: 10px;
+        gap: 12px;
+    }
+    .flow-dynamic-bridge {
+        padding: 8px 0;
+        border-top: 1px dashed var(--border-light);
+        border-bottom: 1px dashed var(--border-light);
+    }
+    .liquidity-metrics-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
     }
 }
 

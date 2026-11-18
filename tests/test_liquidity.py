@@ -85,3 +85,9 @@ def test_liquidity_overview_schema():
     assert "code" in data["regime"]
     assert "name" in data["regime"]
     assert "description" in data["regime"]
+    assert "assets" in data
+    assert isinstance(data["assets"], list)
+    assert len(data["assets"]) >= 3
+    assert "flow_pipeline" in data
+    assert "outflows" in data["flow_pipeline"]
+    assert "inflows" in data["flow_pipeline"]

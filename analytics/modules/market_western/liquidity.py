@@ -111,6 +111,125 @@ class GlobalLiquidity:
         }
 
     @staticmethod
+    def _fetch_macro_assets_data(cached_assets: Optional[list] = None) -> list:
+        """
+        获取全球 4 大核心大类资产（标普500、现货黄金、20Y美债、美元指数）历史日线及多周期收益率
+        """
+        from ..chart.indices_comparison import fetch_eastmoney_index_kline
+
+        configs = [
+            {"code": "SP500", "name": "标普500", "secid": "100.SPX", "color": "#3B82F6", "category": "equity"},
+            {"code": "GOLD", "name": "现货黄金", "secid": "101.GC00Y", "color": "#EAB308", "category": "commodity"},
+            {"code": "TLT", "name": "20Y美债", "secid": "105.TLT", "color": "#10B981", "category": "bond"},
+            {"code": "DXY", "name": "美元指数", "secid": "100.UDI", "color": "#8B5CF6", "category": "cash"},
+        ]
+
+        cached_map = {a["code"]: a for a in (cached_assets or []) if isinstance(a, dict) and "code" in a}
+        results = []
+
+        for c in configs:
+            code = c["code"]
+            asset_info = None
+            try:
+                df = fetch_eastmoney_index_kline(c["secid"])
+                if df is not None and not df.empty and len(df) >= 5:
+                    sub = df.tail(90).copy()
+                    sub["close"] = pd.to_numeric(sub["close"], errors="coerce")
+                    sub = sub.dropna(subset=["close"])
+                    if not sub.empty:
+                        hist = sub[["date", "close"]].values.tolist()
+                        latest = float(sub["close"].iloc[-1])
+                        c5 = float(sub["close"].iloc[-6]) if len(sub) >= 6 else latest
+                        c20 = float(sub["close"].iloc[-21]) if len(sub) >= 21 else latest
+                        c60 = float(sub["close"].iloc[-61]) if len(sub) >= 61 else latest
+                        ret5 = round((latest - c5) / c5 * 100, 2)
+                        ret20 = round((latest - c20) / c20 * 100, 2)
+                        ret60 = round((latest - c60) / c60 * 100, 2)
+                        asset_info = {
+                            "code": code,
+                            "name": c["name"],
+                            "color": c["color"],
+                            "category": c["category"],
+                            "latest_close": latest,
+                            "returns": {"5d": ret5, "20d": ret20, "60d": ret60},
+                            "history": hist,
+                        }
+            except Exception as e:
+                logger.warning(f"[GlobalLiquidity] 获取资产 {code} 异常: {e}")
+
+            if not asset_info and code in cached_map:
+                asset_info = cached_map[code]
+
+            if asset_info:
+                results.append(asset_info)
+
+        return results
+
+    @staticmethod
+    def _build_flow_pipeline(
+        assets: list,
+        net_liq: float,
+        tips_val: float
+    ) -> Dict[str, Any]:
+        """
+        基于资产 20 日表现及流动性状态构建资金流向管道
+        """
+        if not assets:
+            return {}
+
+        ret_map = {a["code"]: a.get("returns", {}).get("20d", 0.0) for a in assets}
+        spx_ret = ret_map.get("SP500", 0.0)
+        gold_ret = ret_map.get("GOLD", 0.0)
+        tlt_ret = ret_map.get("TLT", 0.0)
+        dxy_ret = ret_map.get("DXY", 0.0)
+
+        outflows = []
+        inflows = []
+        for a in assets:
+            ret = a.get("returns", {}).get("20d", 0.0)
+            item = {
+                "code": a["code"],
+                "name": a["name"],
+                "color": a["color"],
+                "category": a.get("category", "other"),
+                "change": ret,
+            }
+            if ret < 0:
+                outflows.append(item)
+            else:
+                inflows.append(item)
+
+        outflows.sort(key=lambda x: x["change"])
+        inflows.sort(key=lambda x: x["change"], reverse=True)
+
+        if spx_ret < 0 and gold_ret < 0 and tlt_ret < 0 and dxy_ret > 0:
+            bridge_title = "流动性虹吸 · 资金撤向避风港"
+            bridge_desc = "股债金三杀去杠杆，高贴现率压制下高息现金成为唯一避风港"
+            scenario = "dash_for_cash"
+        elif spx_ret > 0 and (tlt_ret < 0 or gold_ret < 0):
+            bridge_title = "风险追逐 · 资金回流核心资产"
+            bridge_desc = "避险资产离场，流动性回流权益与成长标的 (Risk-On)"
+            scenario = "risk_on"
+        elif spx_ret < 0 and (gold_ret > 0 or tlt_ret > 0):
+            bridge_title = "经典避险 · 防御资金买金买债"
+            bridge_desc = "股市风险释放，避险资金有序涌入黄金与长端国债 (Flight to Safety)"
+            scenario = "flight_to_quality"
+        else:
+            bridge_title = "结构分化 · 宏观再平衡"
+            bridge_desc = "跨资产资金双向轮动，市场在无风险高利率环境下等待主线"
+            scenario = "neutral"
+
+        return {
+            "scenario": scenario,
+            "bridge_title": bridge_title,
+            "bridge_desc": bridge_desc,
+            "outflows": outflows,
+            "inflows": inflows,
+            "net_liquidity_scale": f"${net_liq}T",
+            "tips_rate": f"{tips_val}%"
+        }
+
+    @staticmethod
     @cached(
         SNAPSHOT_KEY,
         ttl=settings.CACHE_TTL.get("market_overview", 3600),
@@ -195,6 +314,21 @@ class GlobalLiquidity:
         # 5. 跨资产宏观状态机诊断
         regime = GlobalLiquidity._determine_regime(spx_chg, gold_chg, us10y_chg, dxy_val, tips_val)
 
+        # 6. 获取 4 大核心大类资产日线历史及多周期收益率 (标普500、黄金、20Y美债、美元指数)
+        cached_assets = cached_snapshot.get("assets", [])
+        assets = GlobalLiquidity._fetch_macro_assets_data(cached_assets=cached_assets)
+
+        # 若获取到了最新的 DXY 资产收盘价，优先以此校准 dxy_val
+        for a in assets:
+            if a.get("code") == "DXY" and a.get("latest_close"):
+                dxy_val = a["latest_close"]
+                dxy_chg = a.get("returns", {}).get("5d", dxy_chg)
+                dxy_status = "偏强运行" if dxy_val >= 104 else "中性震荡" if dxy_val >= 101 else "走弱宽松"
+                break
+
+        # 7. 构建动态资金流向管道
+        flow_pipeline = GlobalLiquidity._build_flow_pipeline(assets, net_liq_val, tips_val)
+
         payload = {
             "dxy": {
                 "value": round(dxy_val, 2),
@@ -220,6 +354,8 @@ class GlobalLiquidity:
                 "sublabel": "总资产 - TGA - 逆回购"
             },
             "regime": regime,
+            "assets": assets,
+            "flow_pipeline": flow_pipeline,
             "update_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
 
