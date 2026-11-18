@@ -256,16 +256,22 @@ body {
     opacity: 0.85;
 }
 
-.brand-by {
-    font-size: 12.5px;
+a.brand-by,
+a.brand-by:link,
+a.brand-by:visited {
+    font-size: 12px;
     font-weight: 400;
-    color: var(--text-secondary);
-    text-decoration: none;
-    transition: color 0.2s ease;
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none !important;
+    cursor: pointer;
+    transition: color 0.2s ease, opacity 0.2s ease;
 }
 
-.brand-by:hover {
-    color: var(--text-inverse);
+a.brand-by:hover,
+a.brand-by:active {
+    color: #ffffff;
+    opacity: 1;
+    text-decoration: none !important;
 }
 
 .badge {
