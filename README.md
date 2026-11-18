@@ -1,8 +1,8 @@
 # X-Data
 
-> **XeraFun 旗下的全球宏观周期与金融数据看板**，基于 [FastAPI](https://fastapi.tiangolo.com/) 与 [AKShare](https://github.com/akfamily/akshare) 构建。
+全球宏观周期与金融数据看板 (by [XeraFun](https://github.com/xerafun))，基于 [FastAPI](https://fastapi.tiangolo.com/) 与 [AKShare](https://github.com/akfamily/akshare) 构建。
 
-- **官方站点**：[https://data.xerafun.com](https://data.xerafun.com) (by [XeraFun](https://github.com/xerafun))
+- **线上访问**：[https://data.xerafun.com](https://data.xerafun.com)
 
 > 本项目仅供技术交流与学习研究使用，不构成任何投资建议。
 
