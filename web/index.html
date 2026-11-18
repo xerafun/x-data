@@ -57,12 +57,15 @@
 
     <header class="navbar">
         <div class="navbar-content">
-            <a href="./" class="brand" title="回到首页">X-Data</a>
+            <div class="nav-brand-group">
+                <a href="./" class="brand" title="回到首页">X-Data</a>
+                <a href="https://xerafun.com" target="_blank" rel="noopener noreferrer" class="brand-by" title="前往 XeraFun 官网">by XeraFun</a>
+            </div>
             <div class="nav-right" style="display: flex; align-items: center; gap: 16px;">
-                <a href="https://xerafun.com" target="_blank" rel="noopener noreferrer" class="refresh-badge" title="前往 XeraFun 官网">
+                <div class="refresh-badge" title="数据刷新时间">
                     <span class="pulse-dot"></span>
-                    <span id="global-update-time">XeraFun</span>
-                </a>
+                    <span id="global-update-time">--:--:--</span>
+                </div>
                 <a href="https://github.com/xerafun/x-data" target="_blank" class="github-link"
                     title="View on GitHub">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
