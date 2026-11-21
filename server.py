@@ -1,7 +1,11 @@
 import os
+import socket
 
 # 生产环境禁用 tqdm 进度条，避免与日志交叉混排
 os.environ.setdefault("TQDM_DISABLE", "1")
+
+# 设置进程级底层网络 Socket 默认超时 (15 秒)，防止第三方库抓取在境外丢包时永久挂起
+socket.setdefaulttimeout(15.0)
 
 import uvicorn
 import threading
@@ -223,7 +227,8 @@ def health_check():
     
     from analytics.core.data_provider import data_provider
 
-    cache_stats = cache.get_stats()
+    # 高频健康检查使用 fast=True，避免每次健康探针全量扫描 Redis 键空间
+    cache_stats = cache.get_stats(fast=True)
 
     return {
         "status": "ok",

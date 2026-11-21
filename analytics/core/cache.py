@@ -237,8 +237,8 @@ class RedisCache:
                 self._pop_local(key)
             return len(keys)
 
-    def get_stats(self) -> dict:
-        """获取统计（包含命中率）"""
+    def get_stats(self, fast: bool = False) -> dict:
+        """获取统计（包含命中率，fast=True 跳过全量 scan_iter，毫秒级响应）"""
         if not self.connected:
             return {"connected": False, "error": "Redis 未连接"}
         try:
@@ -251,14 +251,16 @@ class RedisCache:
             total = hits + misses
             hit_rate = round(hits / total * 100, 2) if total > 0 else 0
 
-            # 获取缓存键数量
-            keys_count = len(
-                list(
-                    self.redis.scan_iter(
-                        match=f"{settings.CACHE_PREFIX}:{CACHE_VERSION}:*", count=1000
+            # 获取缓存键数量 (fast 模式跳过全量 scan_iter，专为高频探针与健康检查优化)
+            keys_count = 0
+            if not fast:
+                keys_count = len(
+                    list(
+                        self.redis.scan_iter(
+                            match=f"{settings.CACHE_PREFIX}:{CACHE_VERSION}:*", count=1000
+                        )
                     )
                 )
-            )
 
             return {
                 "connected": True,

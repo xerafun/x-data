@@ -4,6 +4,7 @@ API 请求伪装补丁
 """
 
 import random
+import socket
 import requests
 from .logger import logger
 
@@ -80,10 +81,15 @@ def _patched_request(self, method, url, *args, **kwargs):
 
 def apply_patches():
     """应用所有补丁"""
-    logger.info("正在应用 API 伪装补丁...")
+    logger.info("正在应用 API 伪装与网络防护补丁...")
+
+    # 1. 设置进程级默认 Socket 超时 (15秒)
+    # 防止第三方库 (如 akshare/urllib/requests) 在海外服务器请求国内金融源因跨境丢包/黑洞导致底层连接永久挂死
+    socket.setdefaulttimeout(15.0)
+    logger.info("已设置全局 Socket 默认超时: 15s")
     
-    # 1. Monkey Patch requests.Session.request
+    # 2. Monkey Patch requests.Session.request
     requests.Session.request = _patched_request
     logger.info("已注入随机 User-Agent 和浏览器 Headers")
     
-    logger.info("API 伪装补丁已生效")
+    logger.info("API 伪装与防护补丁已生效")
