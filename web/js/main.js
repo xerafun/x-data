@@ -31,7 +31,7 @@ class App {
     }
 
     getPageTitle(tabId) {
-        return 'X-Data | Global · Holdings · Chart · AI · Gold · QDII';
+        return 'X-Data | 全球宏观 · 13F持仓 · 指数估值 · AI产业链 · 贵金属 · QDII折溢价';
     }
 
     updatePageTitle(tabId) {
