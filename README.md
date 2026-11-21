@@ -36,11 +36,11 @@ graph TD
     Snapshot --> LocalJSON["本地 JSON 容灾备份"]
 
     Services -->|"直连请求"| Sources["公开行情与金融数据源"]
-    Services -->|"边缘多链路分流"| Worker["Cloudflare Worker 边缘节点"] --> FundSources["跨境与多市场金融数据源"]
+    Services -->|"边缘多链路分流"| Worker["边缘中继代理 (x-worker)"] --> FundSources["跨境与多市场金融数据源"]
 ```
 
 - **四级高可用容灾**：Redis 内存热缓存（<5ms）➔ 进程内 LocalCache 兜底 ➔ PostgreSQL 数据快照（`DataSnapshot`，冷启动/重启秒开）➔ 容器本地 JSON 文件降级。
-- **多链路智能路由与边缘分流**：国内高频行情接入直连网络通道；跨境及深度基金数据经由 Cloudflare Worker 边缘节点分流，平滑跨网抖动并提升系统整体可用性。
+- **多链路智能路由与边缘分流**：国内高频行情接入直连网络通道；跨境及特定金融数据源经由配套开源项目 [x-worker](https://github.com/xerafun/x-worker)（基于 Cloudflare Workers）进行边缘分流与加速，平滑跨网抖动并保障海外部署节点的实时更新。
 
 ---
 
@@ -72,6 +72,7 @@ REDIS_PASSWORD="password"
 POSTGRES_PASSWORD="password"
 POSTGRES_DB="xdata"
 
+# Cloudflare Worker 边缘中继代理配置 (对应配套开源项目: https://github.com/xerafun/x-worker)
 CF_WORKER_PROXY_URL="https://your-worker-proxy.domain"
 CF_WORKER_SECRET_KEY="your-secret-key"
 ```
@@ -98,6 +99,12 @@ Compose 会启动独立的 Redis 和 PostgreSQL 容器，应用通过容器网�
 - **容器构建**：标准 Docker 多阶段构建，支持 ARM64 / AMD64 双架构。
 - **自动化发布**：通过专用运维流水线执行容器滚动更新、配置热重载与在线健康检查。
 - **线上访问**：[https://data.xerafun.com](https://data.xerafun.com)
+
+---
+
+## 配套组件
+
+- **[x-worker](https://github.com/xerafun/x-worker)**：基于 Cloudflare Workers 的高性能 HTTP API 代理中继服务。专为境外云服务器请求国内金融数据源设计，具备访问密钥鉴权、CORS 预检与受信域名白名单防护，与 X-Data 无缝协同，彻底消除海外节点的网络丢包与假死风险。
 
 ---
 
