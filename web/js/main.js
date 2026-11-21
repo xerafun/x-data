@@ -31,16 +31,7 @@ class App {
     }
 
     getPageTitle(tabId) {
-        const titles = {
-            'holdings': '13F 舵手持仓',
-            'chart': '大类资产与估值',
-            'global': '全球市场看板',
-            'ai': 'AI 产业链全景',
-            'gold': '贵金属现货',
-            'qdii': 'QDII 基金折溢价',
-        };
-        const sectionTitle = titles[tabId];
-        return sectionTitle ? `X-Data | ${sectionTitle}` : 'X-Data | 宏观资产与产业周期看板';
+        return 'X-Data | Global · Holdings · Chart · AI · Gold · QDII';
     }
 
     updatePageTitle(tabId) {
