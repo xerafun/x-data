@@ -309,6 +309,7 @@ def wrap_response(
     message: Optional[str] = None,
     cached_at: Optional[float] = None,
     ttl: Optional[int] = None,
+    is_snapshot: bool = False,
 ) -> Dict[str, Any]:
     """
     包装标准化 API 响应格式
@@ -319,6 +320,7 @@ def wrap_response(
         message: 错误/状态消息 (status != 'ok' 时必填)
         cached_at: 缓存时间戳 (Unix timestamp)
         ttl: 剩余有效秒数
+        is_snapshot: 是否来自离线兜底快照
     """
     response: Dict[str, Any] = {"status": status}
     
@@ -333,6 +335,9 @@ def wrap_response(
     if cached_at:
         response["cached_at"] = datetime.fromtimestamp(cached_at).isoformat()
     
+    if is_snapshot:
+        response["is_snapshot"] = True
+
     if ttl is not None:
         response["ttl"] = ttl
     
@@ -372,6 +377,7 @@ def cached(key_prefix: str, ttl: int = 60, stale_ttl: Optional[int] = None, sync
             now = time.time()
             should_refresh = False
             return_stale = False
+            is_from_snapshot = False
 
             if cached_data is not None:
                 # 检查是否包含元数据 (新版缓存结构)
@@ -430,10 +436,12 @@ def cached(key_prefix: str, ttl: int = 60, stale_ttl: Optional[int] = None, sync
                 if snapshot_data is not None:
                     should_refresh = True
                     return_stale = True
+                    is_from_snapshot = True
                     stale_data = snapshot_data
                 else:
                     should_refresh = True
                     return_stale = False
+                    is_from_snapshot = False
                     stale_data = None  # 无陈旧数据可用
 
             # 3. 需要刷新数据
@@ -580,7 +588,8 @@ def cached(key_prefix: str, ttl: int = 60, stale_ttl: Optional[int] = None, sync
                     return wrap_response(
                         status="ok",
                         data=stale_data,
-                        message="数据刷新中"
+                        message="离线快照 (后台实时同步中)" if is_from_snapshot else "数据刷新中",
+                        is_snapshot=is_from_snapshot
                     )
                 else:
                     return wrap_response(

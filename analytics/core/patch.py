@@ -3,12 +3,32 @@ API 请求伪装补丁
 用于绕过反爬虫限制
 """
 
+import os
 import random
 import socket
+from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 import requests
 from .logger import logger
 
-# 常见浏览器 UA
+# 受信国内金融数据源域名（海外节点容易被拦截、丢包或封锁的目标源）
+DOMESTIC_PROXIED_DOMAINS = (
+    "eastmoney.com",
+    "sina.com.cn",
+    "sinajs.cn",
+    "tencent.com",
+    "gtimg.cn",
+    "163.com",
+    "cninfo.com.cn",
+    "sse.com.cn",
+    "szse.cn",
+    "cls.cn",
+    "akshare.xyz",
+    "chinabond.com.cn",
+    "chinamoney.com.cn",
+    "csindex.com.cn",
+    "xueqiu.com",
+)
+
 # 常见浏览器 UA (扩充列表)
 USER_AGENTS = [
     # macOS - Chrome / Safari / Edge / Firefox
@@ -76,8 +96,54 @@ def _patched_request(self, method, url, *args, **kwargs):
     # 增加超时设置 (如果未设置)
     if "timeout" not in kwargs:
         kwargs["timeout"] = 15
+
+    # 4. 判断是否需要通过 Cloudflare Worker 进行透明中继加速 (仅在配置了中继且目标为国内受信源时生效)
+    proxy_url = os.getenv("CF_WORKER_PROXY_URL")
+    proxy_secret = os.getenv("CF_WORKER_SECRET_KEY")
+
+    should_proxy = False
+    full_target_url = url
+    if proxy_url and proxy_secret and not str(url).startswith(proxy_url):
+        try:
+            parsed_url = urlparse(str(url))
+            hostname = (parsed_url.hostname or "").lower()
+            if any(hostname == d or hostname.endswith("." + d) for d in DOMESTIC_PROXIED_DOMAINS):
+                should_proxy = True
+                params = kwargs.pop("params", None)
+                if params:
+                    q = dict(parse_qsl(parsed_url.query))
+                    if isinstance(params, dict):
+                        q.update(params)
+                    elif isinstance(params, (list, tuple)):
+                        q.update(dict(params))
+                    new_query = urlencode(q)
+                    full_target_url = urlunparse((
+                        parsed_url.scheme,
+                        parsed_url.netloc,
+                        parsed_url.path,
+                        parsed_url.params,
+                        new_query,
+                        parsed_url.fragment
+                    ))
+        except Exception:
+            should_proxy = False
+
+    if should_proxy:
+        headers["X-Target-URL"] = full_target_url
+        headers["X-Proxy-Secret"] = proxy_secret
+        try:
+            resp = _original_request(self, method, proxy_url, *args, **kwargs)
+            if resp.status_code in (200, 304):
+                return resp
+            logger.warning(f"⚠️ [Proxy] Worker 代理返回状态码 {resp.status_code}，降级走直连: {full_target_url}")
+        except Exception as proxy_err:
+            logger.warning(f"⚠️ [Proxy] Worker 代理中继异常: {proxy_err}，降级走直连: {full_target_url}")
         
-    return _original_request(self, method, url, *args, **kwargs)
+        # 降级：若代理未返回 200 或网络异常，移除代理请求头，回退直连
+        headers.pop("X-Target-URL", None)
+        headers.pop("X-Proxy-Secret", None)
+        
+    return _original_request(self, method, full_target_url, *args, **kwargs)
 
 def apply_patches():
     """应用所有补丁"""
