@@ -993,7 +993,6 @@ class HoldingsController {
             </div>
             `;
         }
-        `;
 
         const closeBtn = overlay.querySelector('.qdii-modal-close');
         if (closeBtn) {
@@ -1178,8 +1177,6 @@ class HoldingsController {
             { code: "dalio", name: "瑞·达利欧", full_name: "桥水基金", color: "#0d9488", beta: 0.72, ndx_w: -0.05, t1y: 14.60, t3y: 22.80, seed: 105, default_selected: false },
             { code: "hillhouse", name: "张磊 / 高瓴资本", full_name: "HHLR Advisors", color: "#06b6d4", beta: 0.95, ndx_w: 0.15, t1y: 11.50, t3y: -8.20, seed: 106, default_selected: false },
         ];
-
-        const sp500_ret_1y = ((spCloses[n - 1] - spCloses[idx_1y]) / spCloses[idx_1y]) * 100;
 
         const result = [];
 
