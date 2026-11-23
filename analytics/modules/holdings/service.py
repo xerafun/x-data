@@ -53,28 +53,29 @@ class HoldingsService:
             top_holding = holdings[0] if holdings else None
             top_holding_summary = f"{top_holding.get('symbol')} ({top_holding.get('weight')}%)" if top_holding else "--"
 
-            # 统计前 15 大持仓用于共识挖掘
-            for h in holdings[:15]:
-                sym = h.get("symbol")
-                if not sym or sym in ("SPY", "IVV", "VOO"):  # 剔除宽基指数ETF，聚焦个股共识
-                    continue
-                if sym not in consensus_map:
-                    consensus_map[sym] = {
-                        "symbol": sym,
-                        "name": h.get("name"),
-                        "sector": h.get("sector"),
-                        "holders": [],
-                        "total_value": 0,
-                    }
-                consensus_map[sym]["holders"].append({
-                    "manager_id": m_id,
-                    "manager_name": meta["name"],
-                    "avatar_icon": meta["avatar_icon"],
-                    "weight": h.get("weight", 0),
-                    "action": h.get("action", "hold"),
-                    "action_label": h.get("action_label", "持有")
-                })
-                consensus_map[sym]["total_value"] += h.get("value", 0)
+            # 统计前 15 大持仓用于共识挖掘 (排除大类资产策略，聚焦个股共识)
+            if not data.get("is_portfolio") and m_id != "xerafun":
+                for h in holdings[:15]:
+                    sym = h.get("symbol")
+                    if not sym or sym in ("SPY", "IVV", "VOO", "XAU", "NDX", "SP500", "CASH", "QDII_TOP10"):
+                        continue
+                    if sym not in consensus_map:
+                        consensus_map[sym] = {
+                            "symbol": sym,
+                            "name": h.get("name"),
+                            "sector": h.get("sector"),
+                            "holders": [],
+                            "total_value": 0,
+                        }
+                    consensus_map[sym]["holders"].append({
+                        "manager_id": m_id,
+                        "manager_name": meta["name"],
+                        "avatar_icon": meta["avatar_icon"],
+                        "weight": h.get("weight", 0),
+                        "action": h.get("action", "hold"),
+                        "action_label": h.get("action_label", "持有")
+                    })
+                    consensus_map[sym]["total_value"] += h.get("value", 0)
 
             managers_list.append({
                 "id": m_id,

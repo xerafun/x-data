@@ -5,6 +5,22 @@
 from typing import Dict, Any
 
 TRACKED_MANAGERS: Dict[str, Dict[str, Any]] = {
+    "xerafun": {
+        "id": "xerafun",
+        "name": "XeraFun",
+        "en_name": "XeraFun",
+        "institution": "五等分大类配置全天候策略",
+        "cik": "PORTFOLIO-5X20",
+        "style": "五等分大类资产 · 跨市场全天候",
+        "style_tags": ["五等分全天候", "跨市场对冲", "低波高夏普"],
+        "category": "macro",
+        "avatar_icon": "shield-check",
+        "description": "XeraFun 全天候大类资产配置模型，黄金20%、纳指20%、标普20%、主动型QDII 20%、现金等价物20%，实现跨资产低相关性平衡与穿越周期稳健复利。",
+        "return_1y": 21.4,
+        "return_3y": 64.6,
+        "alpha_1y": 2.17,
+        "filing_note": "每日真实多资产行情加权动态跟踪",
+    },
     "burry": {
         "id": "burry",
         "name": "迈克尔·伯里",

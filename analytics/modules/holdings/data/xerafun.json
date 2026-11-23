@@ -1,0 +1,89 @@
+{
+  "id": "xerafun",
+  "name": "XeraFun",
+  "en_name": "XeraFun",
+  "institution": "五等分大类配置全天候策略",
+  "cik": "PORTFOLIO-5X20",
+  "style": "五等分大类资产 · 跨市场全天候",
+  "style_tags": [
+    "五等分全天候",
+    "跨市场对冲",
+    "低波高夏普"
+  ],
+  "avatar_icon": "shield-check",
+  "description": "XeraFun 全天候大类资产配置模型，黄金20%、纳指20%、标普20%、主动型QDII 20%、现金等价物20%，实现跨资产低相关性平衡与穿越周期稳健复利。",
+  "filing_date": "每日实时更新",
+  "filing_form": "实盘画像",
+  "accession": "PORTFOLIO-5X20",
+  "total_value": 10000000,
+  "holding_count": 5,
+  "cr10": 100.0,
+  "is_portfolio": true,
+  "holdings": [
+    {
+      "symbol": "XAU",
+      "name": "现货黄金 (伦敦金)",
+      "raw_name": "Gold Spot (XAU)",
+      "sector": "硬通货大宗",
+      "value": 2000000,
+      "shares": 1000,
+      "rank": 1,
+      "weight": 20.0,
+      "action": "hold",
+      "action_label": "战略底仓",
+      "desc": "避险抗通胀底仓，对冲法币信用扩张与地缘风险"
+    },
+    {
+      "symbol": "NDX",
+      "name": "纳斯达克100",
+      "raw_name": "Nasdaq 100 (QQQ)",
+      "sector": "全球科技核心",
+      "value": 2000000,
+      "shares": 1000,
+      "rank": 2,
+      "weight": 20.0,
+      "action": "hold",
+      "action_label": "成长主力",
+      "desc": "进攻主力：捕捉全球顶尖生产力突破与 AI 时代红利"
+    },
+    {
+      "symbol": "SP500",
+      "name": "标普500",
+      "raw_name": "S&P 500 (SPY)",
+      "sector": "核心宽基底仓",
+      "value": 2000000,
+      "shares": 1000,
+      "rank": 3,
+      "weight": 20.0,
+      "action": "hold",
+      "action_label": "核心底仓",
+      "desc": "核心压舱石：成熟商业文明顶尖龙头的高 ROE 确定性"
+    },
+    {
+      "symbol": "QDII_TOP10",
+      "name": "主动型 QDII 精选",
+      "raw_name": "Active QDII Top-10 Momentum",
+      "sector": "全球超额 Alpha",
+      "value": 2000000,
+      "shares": 1000,
+      "rank": 4,
+      "weight": 20.0,
+      "action": "hold",
+      "action_label": "动态轮动",
+      "desc": "tab=qdii 前10名均衡采样 (各2%)，捕捉跨市场超额"
+    },
+    {
+      "symbol": "CASH",
+      "name": "现金等价物",
+      "raw_name": "Cash & Equivalents",
+      "sector": "流动性与固收",
+      "value": 2000000,
+      "shares": 1000,
+      "rank": 5,
+      "weight": 20.0,
+      "action": "hold",
+      "action_label": "终极防线",
+      "desc": "日息恒定复利安全垫，充当极端暴跌时的机动弹药"
+    }
+  ]
+}
