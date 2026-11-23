@@ -2,18 +2,18 @@
   "id": "xerafun",
   "name": "XeraFun",
   "en_name": "XeraFun",
-  "institution": "五等分大类配置全天候策略",
+  "institution": "五等分大类配置全天候策略 · 美元本位",
   "cik": "PORTFOLIO-5X20",
-  "style": "五等分大类资产 · 跨市场全天候",
+  "style": "五等分美元大类资产 · 跨资产全天候",
   "style_tags": [
-    "五等分全天候",
-    "跨市场对冲",
+    "美元全天候",
+    "美股巨头Alpha",
     "低波高夏普"
   ],
   "avatar_icon": "shield-check",
-  "description": "XeraFun 全天候大类资产配置模型，黄金20%、纳指20%、标普20%、主动型QDII 20%、现金等价物20%，实现跨资产低相关性平衡与穿越周期稳健复利。",
+  "description": "XeraFun 美元全天候资产配置模型：现货黄金20%、纳指20%、标普20%、美股前10巨头20%、美元现金等价物20%，实现跨资产低相关性平衡与穿越周期稳健复利。",
   "filing_date": "每日实时更新",
-  "filing_form": "实盘画像",
+  "filing_form": "美元实盘画像",
   "accession": "PORTFOLIO-5X20",
   "total_value": 10000000,
   "holding_count": 5,
@@ -23,7 +23,7 @@
     {
       "symbol": "XAU",
       "name": "现货黄金 (伦敦金)",
-      "raw_name": "Gold Spot (XAU)",
+      "raw_name": "Gold Spot (XAU/USD)",
       "sector": "硬通货大宗",
       "value": 2000000,
       "shares": 1000,
@@ -31,7 +31,7 @@
       "weight": 20.0,
       "action": "hold",
       "action_label": "战略底仓",
-      "desc": "避险抗通胀底仓，对冲法币信用扩张与地缘风险"
+      "desc": "美元计价避险对冲底仓，对冲法币信用扩张与宏观地缘风险"
     },
     {
       "symbol": "NDX",
@@ -44,46 +44,46 @@
       "weight": 20.0,
       "action": "hold",
       "action_label": "成长主力",
-      "desc": "进攻主力：捕捉全球顶尖生产力突破与 AI 时代红利"
+      "desc": "美元计价进攻核心：捕捉全球先进生产力突破与科技变革红利"
     },
     {
       "symbol": "SP500",
       "name": "标普500",
       "raw_name": "S&P 500 (SPY)",
-      "sector": "核心宽基底仓",
+      "sector": "成熟商业底仓",
       "value": 2000000,
       "shares": 1000,
       "rank": 3,
       "weight": 20.0,
       "action": "hold",
-      "action_label": "核心底仓",
-      "desc": "核心压舱石：成熟商业文明顶尖龙头的高 ROE 确定性"
+      "action_label": "核心基石",
+      "desc": "美元计价全市场压舱石：成熟商业文明顶尖龙头的高 ROE 长期复利"
     },
     {
-      "symbol": "QDII_TOP10",
-      "name": "主动型 QDII 精选",
-      "raw_name": "Active QDII Top-10 Momentum",
-      "sector": "全球超额 Alpha",
+      "symbol": "MEGA10",
+      "name": "美股前10大巨头 (等权)",
+      "raw_name": "US Top-10 Mega Caps (Equal-Weighted)",
+      "sector": "核心个股 Alpha",
       "value": 2000000,
       "shares": 1000,
       "rank": 4,
       "weight": 20.0,
       "action": "hold",
-      "action_label": "动态轮动",
-      "desc": "tab=qdii 前10名均衡采样 (各2%)，捕捉跨市场超额"
+      "action_label": "核心进攻",
+      "desc": "美股前10大市值核心巨头均权配置 (各2.0%)，享受顶级商业壁垒与超额 Alpha"
     },
     {
-      "symbol": "CASH",
-      "name": "现金等价物",
-      "raw_name": "Cash & Equivalents",
-      "sector": "流动性与固收",
+      "symbol": "USD_CASH",
+      "name": "美元现金等价物",
+      "raw_name": "USD Cash & Short Treasuries (SOFR)",
+      "sector": "流动性与防线",
       "value": 2000000,
       "shares": 1000,
       "rank": 5,
       "weight": 20.0,
       "action": "hold",
       "action_label": "终极防线",
-      "desc": "日息恒定复利安全垫，充当极端暴跌时的机动弹药"
+      "desc": "无风险美元短期国债/隔夜逆回购安全垫 (年化 ~4.8%)，暴跌时的机动弹药"
     }
   ]
 }

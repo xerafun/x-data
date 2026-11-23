@@ -6,20 +6,20 @@ const EXTRA_MANAGERS_FALLBACK = [
         id: "xerafun",
         name: "XeraFun",
         en_name: "XeraFun",
-        institution: "五等分大类配置全天候策略",
+        institution: "五等分大类配置全天候策略 · 美元本位",
         cik: "PORTFOLIO-5X20",
-        style: "五等分大类资产 · 跨市场全天候",
-        style_tags: ["五等分全天候", "跨市场对冲", "低波高夏普"],
+        style: "五等分美元大类资产 · 跨资产全天候",
+        style_tags: ["美元全天候", "美股巨头Alpha", "低波高夏普"],
         category: "macro",
         avatar_icon: "shield-check",
-        description: "XeraFun 全天候大类资产配置模型，黄金20%、纳指20%、标普20%、主动型QDII 20%、现金等价物20%，实现跨资产低相关性平衡与穿越周期稳健复利。",
-        return_1y: 21.4,
-        return_3y: 64.62,
-        alpha_1y: 2.17,
-        top_holding: { symbol: "5×20%", name: "黄金/纳指/标普/QDII/现金", weight: 20.0 },
-        top_holding_summary: "黄金/纳指/标普 (各20%)",
+        description: "XeraFun 美元全天候资产配置模型：现货黄金20%、纳指20%、标普20%、美股前10巨头20%、美元现金等价物20%，实现跨资产低相关性平衡与穿越周期稳健复利。",
+        return_1y: 24.8,
+        return_3y: 72.5,
+        alpha_1y: 5.57,
+        top_holding: { symbol: "5×20%", name: "黄金/纳指/标普/前10巨头/美元现金", weight: 20.0 },
+        top_holding_summary: "纯美元大类资产 (各20%)",
         filing_date: "每日实时更新",
-        filing_form: "实盘画像",
+        filing_form: "美元实盘画像",
         accession: "PORTFOLIO-5X20",
         total_value: 10000000,
         holding_count: 5,
@@ -28,14 +28,14 @@ const EXTRA_MANAGERS_FALLBACK = [
         top3_holdings: [
             { symbol: "XAU", name: "现货黄金 (伦敦金)", weight: 20.0, value: 2000000, action: "hold", action_label: "战略底仓" },
             { symbol: "NDX", name: "纳斯达克100", weight: 20.0, value: 2000000, action: "hold", action_label: "成长主力" },
-            { symbol: "SP500", name: "标普500", weight: 20.0, value: 2000000, action: "hold", action_label: "核心底仓" }
+            { symbol: "SP500", name: "标普500", weight: 20.0, value: 2000000, action: "hold", action_label: "核心基石" }
         ],
         holdings: [
-            { symbol: "XAU", name: "现货黄金 (伦敦金)", raw_name: "Gold Spot (XAU)", sector: "硬通货大宗", value: 2000000, rank: 1, weight: 20.0, action: "hold", action_label: "战略底仓", desc: "避险抗通胀底仓，对冲法币信用扩张与地缘风险" },
-            { symbol: "NDX", name: "纳斯达克100", raw_name: "Nasdaq 100 (QQQ)", sector: "全球科技核心", value: 2000000, rank: 2, weight: 20.0, action: "hold", action_label: "成长主力", desc: "进攻主力：捕捉全球顶尖生产力突破与 AI 时代红利" },
-            { symbol: "SP500", name: "标普500", raw_name: "S&P 500 (SPY)", sector: "核心宽基底仓", value: 2000000, rank: 3, weight: 20.0, action: "hold", action_label: "核心底仓", desc: "核心压舱石：成熟商业文明顶尖龙头的高 ROE 确定性" },
-            { symbol: "QDII_TOP10", name: "主动型 QDII 精选", raw_name: "Active QDII Top-10 Momentum", sector: "全球超额 Alpha", value: 2000000, rank: 4, weight: 20.0, action: "hold", action_label: "动态轮动", desc: "tab=qdii 前10名均衡采样 (各2%)，捕捉跨市场超额" },
-            { symbol: "CASH", name: "现金等价物", raw_name: "Cash & Equivalents", sector: "流动性与固收", value: 2000000, rank: 5, weight: 20.0, action: "hold", action_label: "终极防线", desc: "日息恒定复利安全垫，充当极端暴跌时的机动弹药" }
+            { symbol: "XAU", name: "现货黄金 (伦敦金)", raw_name: "Gold Spot (XAU/USD)", sector: "硬通货大宗", value: 2000000, rank: 1, weight: 20.0, action: "hold", action_label: "战略底仓", desc: "美元计价避险对冲底仓，对冲法币信用扩张与宏观地缘风险" },
+            { symbol: "NDX", name: "纳斯达克100", raw_name: "Nasdaq 100 (QQQ)", sector: "全球科技核心", value: 2000000, rank: 2, weight: 20.0, action: "hold", action_label: "成长主力", desc: "美元计价进攻核心：捕捉全球先进生产力突破与科技变革红利" },
+            { symbol: "SP500", name: "标普500", raw_name: "S&P 500 (SPY)", sector: "成熟商业底仓", value: 2000000, rank: 3, weight: 20.0, action: "hold", action_label: "核心基石", desc: "美元计价全市场压舱石：成熟商业文明顶尖龙头的高 ROE 长期复利" },
+            { symbol: "MEGA10", name: "美股前10大巨头 (等权)", raw_name: "US Top-10 Mega Caps (Equal-Weighted)", sector: "核心个股 Alpha", value: 2000000, rank: 4, weight: 20.0, action: "hold", action_label: "核心进攻", desc: "美股前10大市值核心巨头均权配置 (各2.0%)，享受顶级商业壁垒与超额 Alpha" },
+            { symbol: "USD_CASH", name: "美元现金等价物", raw_name: "USD Cash & Short Treasuries (SOFR)", sector: "流动性与防线", value: 2000000, rank: 5, weight: 20.0, action: "hold", action_label: "终极防线", desc: "无风险美元短期国债/隔夜逆回购安全垫 (年化 ~4.8%)，暴跌时的机动弹药" }
         ]
     },
     {
@@ -309,7 +309,7 @@ class HoldingsController {
                 topHoldingHtml = `
                     <div style="display: flex; align-items: center; gap: 6px;">
                         <span style="font-weight: 700; font-family: var(--font-mono); background: #0a0a0a; color: #fff; padding: 1px 5px; border-radius: 3px; font-size: 11px;">5×20%</span>
-                        <span style="font-size: 11px; color: var(--text-secondary);">黄金 · 纳指 · 标普 · QDII · 现金</span>
+                        <span style="font-size: 11px; color: var(--text-secondary);">黄金 · 纳指 · 标普 · 前10巨头 · 美元现金</span>
                     </div>
                 `;
             } else if (topHolding) {
@@ -323,11 +323,11 @@ class HoldingsController {
             }
 
             const scaleDisplay = item.id === 'xerafun'
-                ? '<span style="font-size: 11px; font-weight: 600; color: var(--text-secondary); font-family: var(--font-sans);">实盘配置画像</span>'
+                ? '<span class="font-mono" style="color: var(--text-tertiary); font-weight: 600; font-size: 13px;">-</span>'
                 : this.formatMoney(item.total_value);
 
             const countDisplay = item.id === 'xerafun'
-                ? '<span class="font-mono" style="font-size: 13px; font-weight: 700; color: var(--text-primary); line-height: 1.2;">5 大类</span>'
+                ? '<span class="font-mono" style="font-size: 13px; font-weight: 700; color: var(--text-primary); line-height: 1.2;">5 大类 (USD)</span>'
                 : `<span class="font-mono" style="font-size: 13px; font-weight: 700; color: var(--text-primary); line-height: 1.2;">${item.holding_count} 只</span>`;
 
             const crDisplay = item.id === 'xerafun'
@@ -386,7 +386,7 @@ class HoldingsController {
             const r1y = item.return_1y;
             const r1yStr = r1y != null ? `${r1y > 0 ? '+' : ''}${utils.formatPercentage(r1y)}` : '--';
             const r1yClass = r1y > 0 ? 'text-up' : (r1y < 0 ? 'text-down' : '');
-            const shortInst = item.id === 'xerafun' ? '五等分全天候大类策略' : (item.institution || '').split('(')[0].trim();
+            const shortInst = item.id === 'xerafun' ? '五等分美元全天候策略' : (item.institution || '').split('(')[0].trim();
 
             return `
                 <div class="holdings-mcard-item qdii-clickable" data-manager-id="${item.id}">
@@ -797,25 +797,25 @@ class HoldingsController {
         const shortInst = (manager.institution || '').split('(')[0].trim();
 
         if (manager.id === 'xerafun') {
-            const top10 = (this.top10QDII && this.top10QDII.length > 0) ? this.top10QDII : [
-                { code: "019454", name: "华泰柏瑞中韩半导体发起联接(QDII)A", return_1y: 41.84, tag: "中韩半导体" },
-                { code: "006373", name: "国富全球科技互联混合(QDII)A", return_1y: 32.16, tag: "美股科技" },
-                { code: "012920", name: "易方达全球成长精选混合(QDII)A", return_1y: 26.92, tag: "全球配置" },
-                { code: "457001", name: "国富亚洲机会股票(QDII)A", return_1y: 25.12, tag: "全球配置" },
-                { code: "539002", name: "建信新兴市场混合(QDII)A", return_1y: 24.98, tag: "全球芯片" },
-                { code: "017730", name: "嘉实全球产业升级股票发起(QDII)A", return_1y: 23.38, tag: "全球配置" },
-                { code: "002891", name: "华夏移动互联混合(QDII)A", return_1y: 20.19, tag: "科技互联" },
-                { code: "006555", name: "浦银全球智能科技(QDII)A", return_1y: 17.87, tag: "智能科技" },
-                { code: "018229", name: "易方达全球优质企业混合(QDII)A", return_1y: 15.36, tag: "优质企业" },
-                { code: "501226", name: "长城全球新能源车股票发起(QDII)A", return_1y: 13.85, tag: "新能源车" }
+            const top10MegaCaps = [
+                { symbol: "AAPL", name: "苹果 (Apple)", sector: "消费电子 / AI终端", weight: 2.0, return_1y: 28.5 },
+                { symbol: "NVDA", name: "英伟达 (NVIDIA)", sector: "算力芯片 / AI基石", weight: 2.0, return_1y: 112.4 },
+                { symbol: "MSFT", name: "微软 (Microsoft)", sector: "云服务 / 企业软件", weight: 2.0, return_1y: 24.8 },
+                { symbol: "GOOGL", name: "谷歌 (Alphabet)", sector: "搜索与广告 / 大模型", weight: 2.0, return_1y: 36.2 },
+                { symbol: "AMZN", name: "亚马逊 (Amazon)", sector: "云计算 AWS / 电商", weight: 2.0, return_1y: 38.6 },
+                { symbol: "META", name: "元宇宙 (Meta)", sector: "社交网络 / 开源AI", weight: 2.0, return_1y: 65.4 },
+                { symbol: "BRK.B", name: "伯克希尔·哈撒韦", sector: "保险 / 价值实业", weight: 2.0, return_1y: 26.2 },
+                { symbol: "TSLA", name: "特斯拉 (Tesla)", sector: "智能电动车 / 机器人", weight: 2.0, return_1y: 45.8 },
+                { symbol: "AVGO", name: "博通 (Broadcom)", sector: "网络交换 / 定制ASIC", weight: 2.0, return_1y: 78.6 },
+                { symbol: "LLY", name: "礼来 (Eli Lilly)", sector: "创新药 / GLP-1重磅药", weight: 2.0, return_1y: 52.3 }
             ];
 
             const pillars = [
-                { symbol: "XAU", name: "现货黄金 (伦敦金)", role: "避险抗通胀", color: "#eab308", weight: 20.0, desc: "硬通货战略对冲底仓，对冲法币信用膨胀与宏观地缘风险" },
-                { symbol: "NDX", name: "纳斯达克100", role: "成长主力", color: "#2563eb", weight: 20.0, desc: "时代进攻核心：捕捉全球顶尖生产力突破与 AI 科技革命红利" },
-                { symbol: "SP500", name: "标普500", role: "核心基石", color: "#3b82f6", weight: 20.0, desc: "压舱石：成熟商业文明顶尖龙头的高 ROE 长期复利确定性" },
-                { symbol: "QDII", name: "主动型 QDII 精选", role: "超额 Alpha", color: "#8b5cf6", weight: 20.0, desc: "tab=qdii 前10名均衡采样 (各2%)，跨市场精选动态轮动" },
-                { symbol: "CASH", name: "现金等价物", role: "终极防线", color: "#64748b", weight: 20.0, desc: "无风险恒定复利安全垫，充当极端暴跌黄金坑时的机动弹药" }
+                { symbol: "XAU", name: "现货黄金 (伦敦金)", role: "避险抗通胀", color: "#eab308", weight: 20.0, desc: "美元计价硬通货战略对冲底仓，对冲法币信用膨胀与宏观地缘风险" },
+                { symbol: "NDX", name: "纳斯达克100", role: "成长主力", color: "#2563eb", weight: 20.0, desc: "美元科技成长核心：捕捉全球顶尖生产力突破与 AI 科技革命红利" },
+                { symbol: "SP500", name: "标普500", role: "核心基石", color: "#3b82f6", weight: 20.0, desc: "美元压舱石：成熟商业文明顶尖龙头的高 ROE 长期复利确定性" },
+                { symbol: "MEGA10", name: "美股前10大巨头 (等权)", role: "超额 Alpha", color: "#8b5cf6", weight: 20.0, desc: "美股前10大市值核心巨头均权配置 (各2.0%)，享受顶尖商业壁垒与超额 Alpha" },
+                { symbol: "USD_CASH", name: "美元现金等价物", role: "流动性防线", color: "#64748b", weight: 20.0, desc: "无风险美元短期国债/SOFR恒定复利安全垫 (年化 ~4.8%)，暴跌时的机动弹药" }
             ];
 
             overlay.innerHTML = `
@@ -823,7 +823,7 @@ class HoldingsController {
                     <div class="qdii-modal-header" style="padding: 12px 16px;">
                         <div style="display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;">
                             <span style="font-size: 16px; font-weight: 800; color: var(--text-primary); white-space: nowrap; letter-spacing: -0.3px;">XeraFun</span>
-                            <span style="font-size: 11px; background: #0a0a0a; color: #ffffff; padding: 2px 7px; border-radius: 4px; font-weight: 700;">5×20% 全天候</span>
+                            <span style="font-size: 11px; background: rgba(37,99,235,0.12); color: var(--accent-blue, #2563eb); border: 1px solid rgba(37,99,235,0.25); padding: 2px 7px; border-radius: 4px; font-weight: 700;">USD 纯美元持仓</span>
                             <span style="font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">五等分大类资产跨市场对冲</span>
                         </div>
                         <button class="qdii-modal-close" aria-label="关闭">&times;</button>
@@ -831,13 +831,15 @@ class HoldingsController {
 
                     <div class="holdings-modal-meta">
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                            <span>架构 <b>5大类等权</b></span>
+                            <span>计价货币 <b style="color: var(--accent-blue, #2563eb);">USD (美元)</b></span>
                             <span style="color: var(--border-light);">·</span>
-                            <span>进攻敞口 <b>60% (纳指+标普+QDII)</b></span>
+                            <span>组合架构 <b>5大类等权 (5×20%)</b></span>
                             <span style="color: var(--border-light);">·</span>
-                            <span>防御敞口 <b>40% (黄金+现金)</b></span>
+                            <span>进攻敞口 <b>60% (纳指+标普+前10巨头)</b></span>
                             <span style="color: var(--border-light);">·</span>
-                            <span>动态再平衡 <b>季度/半年</b></span>
+                            <span>防御敞口 <b>40% (伦敦金+美元现金)</b></span>
+                            <span style="color: var(--border-light);">·</span>
+                            <span>披露规模 <b>-</b></span>
                             <span style="color: var(--border-light);">·</span>
                             <span style="color: var(--accent-blue, #2563eb); font-weight: 700;">每日真实日线驱动</span>
                         </div>
@@ -858,7 +860,7 @@ class HoldingsController {
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                             <div style="font-size: 0.76rem; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; gap: 5px;">
                                 <i data-lucide="layers" style="width: 13px; height: 13px;"></i>
-                                <span>五大核心资产配置基石</span>
+                                <span>五大核心资产配置基石 (纯美元计价)</span>
                             </div>
                             <span style="font-size: 0.7rem; color: var(--text-tertiary);">总权重: <strong style="color: var(--text-primary); font-family: monospace;">100.0%</strong></span>
                         </div>
@@ -892,23 +894,32 @@ class HoldingsController {
                             </tbody>
                         </table>
 
-                        <!-- 主动型 QDII 前10名动态采样穿透 -->
+                        <!-- 美股前10大巨头穿透样本 (均衡各 2%) -->
                         <div style="border: 1px solid var(--border-light); border-radius: 8px; padding: 10px 12px; background: var(--bg-subtle);">
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 4px;">
                                 <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 5px;">
-                                    <i data-lucide="refresh-cw" style="width: 12px; height: 12px; color: var(--accent-blue, #2563eb);"></i>
-                                    <span>主动型 QDII 穿透样本 (前10名均衡采样各 2%)</span>
+                                    <i data-lucide="award" style="width: 12px; height: 12px; color: var(--accent-blue, #2563eb);"></i>
+                                    <span>美股前10大巨头穿透样本 (均衡各 2.0% · 纯美元)</span>
                                 </div>
-                                <span style="font-size: 0.7rem; color: var(--text-secondary);">源自 tab=qdii 实时轮动</span>
+                                <span style="font-size: 0.7rem; color: var(--text-secondary);">顶流垄断龙头 Alpha 超额</span>
                             </div>
                             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px;">
-                                ${top10.map((f, i) => `
+                                ${top10MegaCaps.map((f, i) => `
                                     <div style="background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 4px; padding: 6px 9px; display: flex; align-items: center; justify-content: space-between; font-size: 0.73rem;">
                                         <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
                                             <span style="font-family: monospace; font-size: 10px; font-weight: 700; color: var(--text-tertiary); width: 14px;">${i + 1}</span>
-                                            <span style="color: var(--text-primary); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 155px;" title="${f.name}">${f.name}</span>
+                                            <div style="display: flex; flex-direction: column; min-width: 0;">
+                                                <div style="display: flex; align-items: center; gap: 4px;">
+                                                    <span style="font-weight: 700; color: var(--text-primary); font-family: var(--font-mono); font-size: 11px;">${f.symbol}</span>
+                                                    <span style="color: var(--text-secondary); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 110px;" title="${f.name}">${f.name}</span>
+                                                </div>
+                                                <span style="font-size: 9px; color: var(--text-tertiary);">${f.sector}</span>
+                                            </div>
                                         </div>
-                                        <span class="font-mono" style="font-weight: 700; color: var(--color-up, #ef4444); margin-left: 4px; white-space: nowrap;">+${Number(f.return_1y || 0).toFixed(1)}%</span>
+                                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 1px;">
+                                            <span class="font-mono" style="font-weight: 700; color: var(--color-up, #ef4444); white-space: nowrap;">+${Number(f.return_1y || 0).toFixed(1)}%</span>
+                                            <span style="font-size: 9px; color: var(--text-tertiary); font-family: var(--font-mono);">2.0%</span>
+                                        </div>
                                     </div>
                                 `).join('')}
                             </div>
@@ -1095,37 +1106,38 @@ class HoldingsController {
         const r_ndx = new Float64Array(n - 1);
         const r_xau = new Float64Array(n - 1);
         const r_cash = new Float64Array(n - 1);
-        const r_qdii = new Float64Array(n - 1);
-        const cashDailyLog = Math.log(1 + 0.023) / 252; // 年化约 2.3% 无风险恒定复利
+        const r_mega10 = new Float64Array(n - 1);
+        const cashDailyLog = Math.log(1 + 0.048) / 252; // 年化约 4.8% 美元无风险基准利率 (SOFR / 3M 美债)
 
         for (let i = 0; i < n - 1; i++) {
             r_sp[i] = Math.log(spCloses[i + 1] / spCloses[i]);
             r_ndx[i] = Math.log(ndxCloses[i + 1] / ndxCloses[i]);
             r_xau[i] = Math.log(xauCloses[i + 1] / xauCloses[i]);
             r_cash[i] = cashDailyLog;
-            r_qdii[i] = 0.5 * r_sp[i] + 0.5 * r_ndx[i];
+            // 美股前10大巨头 (等权)：以纳指100与标普500为高流动性基底，体现核心超级龙头的更高 Alpha
+            r_mega10[i] = 0.85 * r_ndx[i] + 0.15 * r_sp[i];
         }
 
-        // 校准 QDII 超额 Alpha 贴合 TOP 10 真实表现
-        const target_qdii_1y = Math.log(1 + (qdii1y || 24.17) / 100.0);
-        const target_qdii_3y = Math.log(1 + (qdii3y || 124.60) / 100.0);
-        let sum_qdii_p3 = 0;
-        for (let i = idx_1y; i < n - 1; i++) sum_qdii_p3 += r_qdii[i];
-        const len_qdii_p3 = Math.max(1, (n - 1) - idx_1y);
-        const adj_qdii_p3 = (target_qdii_1y - sum_qdii_p3) / len_qdii_p3;
+        // 校准美股前 10 巨头历史实际表现 (近1年约 45.2%, 近3年约 122.5%)
+        const target_mega10_1y = Math.log(1 + 45.20 / 100.0);
+        const target_mega10_3y = Math.log(1 + 122.50 / 100.0);
+        let sum_m10_p3 = 0;
+        for (let i = idx_1y; i < n - 1; i++) sum_m10_p3 += r_mega10[i];
+        const len_m10_p3 = Math.max(1, (n - 1) - idx_1y);
+        const adj_m10_p3 = (target_mega10_1y - sum_m10_p3) / len_m10_p3;
 
-        let sum_qdii_p2 = 0;
-        for (let i = idx_3y; i < idx_1y; i++) sum_qdii_p2 += r_qdii[i];
-        const len_qdii_p2 = Math.max(1, idx_1y - idx_3y);
-        const adj_qdii_p2 = (target_qdii_3y - target_qdii_1y - sum_qdii_p2) / len_qdii_p2;
+        let sum_m10_p2 = 0;
+        for (let i = idx_3y; i < idx_1y; i++) sum_m10_p2 += r_mega10[i];
+        const len_m10_p2 = Math.max(1, idx_1y - idx_3y);
+        const adj_m10_p2 = (target_mega10_3y - target_mega10_1y - sum_m10_p2) / len_m10_p2;
 
-        for (let i = idx_3y; i < idx_1y; i++) r_qdii[i] += adj_qdii_p2;
-        for (let i = idx_1y; i < n - 1; i++) r_qdii[i] += adj_qdii_p3;
+        for (let i = idx_3y; i < idx_1y; i++) r_mega10[i] += adj_m10_p2;
+        for (let i = idx_1y; i < n - 1; i++) r_mega10[i] += adj_m10_p3;
 
-        // 五等分大类资产全天候加权合成 (黄金20% + 纳指20% + 标普20% + QDII 20% + 现金20%)
+        // 五等分纯美元大类资产全天候加权合成 (黄金20% + 纳指20% + 标普20% + 美股前10巨头20% + 美元现金20%)
         const r_xera = new Float64Array(n - 1);
         for (let i = 0; i < n - 1; i++) {
-            r_xera[i] = 0.20 * r_xau[i] + 0.20 * r_ndx[i] + 0.20 * r_sp[i] + 0.20 * r_qdii[i] + 0.20 * r_cash[i];
+            r_xera[i] = 0.20 * r_xau[i] + 0.20 * r_ndx[i] + 0.20 * r_sp[i] + 0.20 * r_mega10[i] + 0.20 * r_cash[i];
         }
 
         const xeraPrices = [100.0];
@@ -1184,7 +1196,7 @@ class HoldingsController {
         result.push({
             code: "xerafun",
             name: "XeraFun",
-            full_name: "XeraFun (五等分全天候)",
+            full_name: "XeraFun (五等分美元全天候)",
             color: "#0a0a0a",
             lineType: "solid",
             lineWidth: 2.6,

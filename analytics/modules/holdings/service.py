@@ -32,7 +32,7 @@ class HoldingsService:
 
     @staticmethod
     @cached(
-        "holdings:overview_v8",
+        "holdings:overview_v9",
         ttl=settings.CACHE_TTL.get("market_us", 3600),
         stale_ttl=settings.CACHE_TTL.get("market_us", 3600) * settings.STALE_TTL_RATIO,
         sync_on_cold=True
@@ -57,7 +57,7 @@ class HoldingsService:
             if not data.get("is_portfolio") and m_id != "xerafun":
                 for h in holdings[:15]:
                     sym = h.get("symbol")
-                    if not sym or sym in ("SPY", "IVV", "VOO", "XAU", "NDX", "SP500", "CASH", "QDII_TOP10"):
+                    if not sym or sym in ("SPY", "IVV", "VOO", "XAU", "NDX", "SP500", "CASH", "USD_CASH", "QDII_TOP10", "MEGA10", "US_TOP10"):
                         continue
                     if sym not in consensus_map:
                         consensus_map[sym] = {
