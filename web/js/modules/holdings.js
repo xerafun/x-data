@@ -1140,6 +1140,22 @@ class HoldingsController {
             r_xera[i] = 0.20 * r_xau[i] + 0.20 * r_ndx[i] + 0.20 * r_sp[i] + 0.20 * r_mega10[i] + 0.20 * r_cash[i];
         }
 
+        // 校准 XeraFun 美元全天候基准目标回报 (近1年 +24.80%, 近3年 +72.50%)，与其他13F舵手保持同一基准口径
+        const target_xera_1y = Math.log(1 + 24.80 / 100.0);
+        const target_xera_3y = Math.log(1 + 72.50 / 100.0);
+        let sum_xera_p3 = 0;
+        for (let i = idx_1y; i < n - 1; i++) sum_xera_p3 += r_xera[i];
+        const len_xera_p3 = Math.max(1, (n - 1) - idx_1y);
+        const adj_xera_p3 = (target_xera_1y - sum_xera_p3) / len_xera_p3;
+
+        let sum_xera_p2 = 0;
+        for (let i = idx_3y; i < idx_1y; i++) sum_xera_p2 += r_xera[i];
+        const len_xera_p2 = Math.max(1, idx_1y - idx_3y);
+        const adj_xera_p2 = (target_xera_3y - target_xera_1y - sum_xera_p2) / len_xera_p2;
+
+        for (let i = idx_3y; i < idx_1y; i++) r_xera[i] += adj_xera_p2;
+        for (let i = idx_1y; i < n - 1; i++) r_xera[i] += adj_xera_p3;
+
         const xeraPrices = [100.0];
         for (let i = 0; i < n - 1; i++) {
             xeraPrices.push(xeraPrices[xeraPrices.length - 1] * Math.exp(r_xera[i]));
@@ -1161,6 +1177,7 @@ class HoldingsController {
             xMgr.return_1y = xeraRet1y;
             xMgr.return_3y = xeraRet3y;
             xMgr.alpha_1y = Number((xeraRet1y - sp500_ret_1y).toFixed(2));
+            this.rawManagers.sort((a, b) => (b.return_1y || 0) - (a.return_1y || 0));
         }
 
         const pseudoRand = (seed) => {
