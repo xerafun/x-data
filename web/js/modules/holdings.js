@@ -4,15 +4,15 @@
 const EXTRA_MANAGERS_FALLBACK = [
     {
         id: "xerafun",
-        name: "XeraFun",
-        en_name: "XeraFun",
-        institution: "五等分大类配置全天候策略 · 美元本位",
+        name: "五等分全天候策略",
+        en_name: "All-Weather 5x20",
+        institution: "5×20% 美元多资产配置 · 跨资产对冲",
         cik: "PORTFOLIO-5X20",
         style: "五等分美元大类资产 · 跨资产全天候",
         style_tags: ["美元全天候", "美股巨头Alpha", "低波高夏普"],
         category: "macro",
         avatar_icon: "shield-check",
-        description: "XeraFun 美元全天候资产配置模型：现货黄金20%、纳指20%、标普20%、美股前10巨头20%、美元现金等价物20%，实现跨资产低相关性平衡与穿越周期稳健复利。",
+        description: "五等分全天候资产配置模型：现货黄金20%、纳指20%、标普20%、美股前10巨头20%、美元现金等价物20%，实现跨资产低相关性平衡与穿越周期稳健复利。",
         return_1y: 24.8,
         return_3y: 72.5,
         alpha_1y: 5.57,
@@ -386,7 +386,7 @@ class HoldingsController {
             const r1y = item.return_1y;
             const r1yStr = r1y != null ? `${r1y > 0 ? '+' : ''}${utils.formatPercentage(r1y)}` : '--';
             const r1yClass = r1y > 0 ? 'text-up' : (r1y < 0 ? 'text-down' : '');
-            const shortInst = item.id === 'xerafun' ? '五等分美元全天候策略' : (item.institution || '').split('(')[0].trim();
+            const shortInst = item.id === 'xerafun' ? '5×20% 美元多资产配置' : (item.institution || '').split('(')[0].trim();
 
             return `
                 <div class="holdings-mcard-item qdii-clickable" data-manager-id="${item.id}">
@@ -822,7 +822,7 @@ class HoldingsController {
                 <div class="qdii-modal-card holdings-modal-card">
                     <div class="qdii-modal-header" style="padding: 12px 16px;">
                         <div style="display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;">
-                            <span style="font-size: 16px; font-weight: 800; color: var(--text-primary); white-space: nowrap; letter-spacing: -0.3px;">XeraFun</span>
+                            <span style="font-size: 16px; font-weight: 800; color: var(--text-primary); white-space: nowrap; letter-spacing: -0.3px;">五等分全天候策略</span>
                             <span style="font-size: 11px; background: rgba(37,99,235,0.12); color: var(--accent-blue, #2563eb); border: 1px solid rgba(37,99,235,0.25); padding: 2px 7px; border-radius: 4px; font-weight: 700;">USD 纯美元持仓</span>
                             <span style="font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">五等分大类资产跨市场对冲</span>
                         </div>
@@ -1209,11 +1209,11 @@ class HoldingsController {
 
         const result = [];
 
-        // 注入 XeraFun 真实全天候大类资产走势曲线
+        // 注入五等分全天候策略走势曲线
         result.push({
             code: "xerafun",
-            name: "XeraFun",
-            full_name: "XeraFun (五等分美元全天候)",
+            name: "五等分全天候",
+            full_name: "五等分全天候策略 (5×20% 美元本位)",
             color: "#0a0a0a",
             lineType: "solid",
             lineWidth: 2.6,

@@ -32,7 +32,7 @@ class HoldingsService:
 
     @staticmethod
     @cached(
-        "holdings:overview_v9",
+        "holdings:overview_v10",
         ttl=settings.CACHE_TTL.get("market_us", 3600),
         stale_ttl=settings.CACHE_TTL.get("market_us", 3600) * settings.STALE_TTL_RATIO,
         sync_on_cold=True
