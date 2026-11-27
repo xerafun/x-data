@@ -6,11 +6,11 @@
 
 - [全球市场与宏观流动性](https://data.xerafun.com/): 全球宏观流动性、美元高息吸水诊断、亚洲与欧美市场股债看板（默认主看板）。
 - [13F 舵手持仓](https://data.xerafun.com/?tab=holdings): 追踪巴菲特、段永平、伯里等机构 SEC 13F 季度持仓与加权收益率。
-- [全球大类资产](https://data.xerafun.com/?tab=assets): 标普500、纳指、沪深300、黄金、原油、比特币等多资产走势对比。
-- [指数估值分位](https://data.xerafun.com/?tab=valuation): 全球核心股指 PE-TTM 与 PB 历史百分位及水温估值。
+- [全球大类资产](https://data.xerafun.com/?tab=chart): 标普500、纳指、沪深300、黄金、原油、比特币等多资产走势对比。
+- [指数估值分位](https://data.xerafun.com/?tab=chart): 全球核心股指 PE-TTM 与 PB 历史百分位及水温估值（Chart 看板内的估值温度计）。
 - [AI 产业链](https://data.xerafun.com/?tab=ai): 涵盖算力芯片、光模块、数据中心、云巨头与软件应用的六层产业链监控。
 - [QDII 折溢价](https://data.xerafun.com/?tab=qdii): 跟踪场外 A 类 QDII 被动基金的实时折溢价率、估算净值与底层持仓。
-- [市场情绪](https://data.xerafun.com/?tab=market): 全球市场恐慌指数与行业板块热力。
+- [市场情绪](https://data.xerafun.com/): 全球市场恐慌指数与行业板块热力（Global 主看板）。
 
 ## 页面
 

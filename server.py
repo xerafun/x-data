@@ -293,7 +293,7 @@ def get_scheduler_status():
 # -----------------------------------------------------------------------------
 import time
 import re
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 BUILD_TIMESTAMP = int(time.time())
 web_dir = os.path.join(os.path.dirname(__file__), "web")
@@ -312,9 +312,7 @@ class CustomStaticFiles(StaticFiles):
         return response
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
-@app.get("/index.html", response_class=HTMLResponse, include_in_schema=False)
 @app.head("/", include_in_schema=False)
-@app.head("/index.html", include_in_schema=False)
 async def serve_index_html():
     index_path = os.path.join(web_dir, "index.html")
     if not os.path.exists(index_path):
@@ -330,6 +328,12 @@ async def serve_index_html():
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
     return response
+
+@app.get("/index.html", include_in_schema=False)
+@app.head("/index.html", include_in_schema=False)
+async def redirect_index_html():
+    # 规范 URL 为根路径，308 重定向避免 /index.html 产生重复内容信号
+    return RedirectResponse("/", status_code=308)
 
 if os.path.exists(web_dir):
     app.mount("/", CustomStaticFiles(directory=web_dir, html=False), name="web")
